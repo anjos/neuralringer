@@ -16,6 +16,7 @@
 #include "sys/Exception.h"
 #include <cstdlib>
 #include "sys/Reporter.h"
+#include "sys/util.h"
 #include <cmath>
 
 /**
@@ -114,6 +115,10 @@ int main (int argc, char** argv)
 
   try {
     roiformat::Database db(reporter);
+    if (!sys::exists(filename)) {
+      RINGER_DEBUG1("Input file " << filename << " doesn't exist.");
+      throw RINGER_EXCEPTION("Input file doesn't exist");
+    }
     db.load(filename);
 
     //get a handle to all RoI's in the file

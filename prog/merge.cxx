@@ -14,6 +14,7 @@
 #include "sys/Reporter.h"
 #include "sys/debug.h"
 #include "sys/Exception.h"
+#include "sys/util.h"
 #include <map>
 #include <string>
 #include <sstream>
@@ -103,6 +104,10 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
 		      << " new DB I'll merge. I'm missing class name for"
 		      << " DB \"" << dbname << "\". Verify your inputs!");
 	throw RINGER_EXCEPTION("Missing DB class name in multi-mode");
+      }
+      if (!sys::exists(dbname)) {
+	RINGER_DEBUG1("Database file " << dbname << " doesn't exist.");
+	throw RINGER_EXCEPTION("Database file doesn't exist");
       }
       p.classmap[dbname] = cname;
     }

@@ -15,6 +15,7 @@
 #include "sys/Reporter.h"
 #include "sys/Exception.h"
 #include "sys/debug.h"
+#include "sys/util.h"
 #include <popt.h>
 #include <cstdio>
 
@@ -78,6 +79,10 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
     switch (c) {
     case 'i': //name of the input file
       RINGER_DEBUG1("The input will be take from file \"" << input << "\".");
+      if (!sys::exists(input)) {
+	RINGER_DEBUG1("Input file " << input << " doesn't exist.");
+	throw RINGER_EXCEPTION("Input file doesn't exist");
+      }
       break;
     case 'o': //the output file prefix
       RINGER_DEBUG1("The output prefix was set to \"" << outprefix << "\".");

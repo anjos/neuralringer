@@ -9,6 +9,8 @@
 #include "network/Network.h"
 #include "sys/Reporter.h"
 #include "sys/Exception.h"
+#include "sys/util.h"
+#include "sys/debug.h"
 #include "data/Database.h"
 #include "data/RemoveMeanOperator.h"
 
@@ -18,6 +20,10 @@ int main (int argc, char** argv)
   if (argc != 3) RINGER_FATAL(reporter, "usage: " << argv[0] 
 			      << " <network-file> <dot-file>");
   try {
+    if (!sys::exists(argv[1])) {
+      RINGER_DEBUG1("Network file " << argv[1] << " doesn't exist.");
+      throw RINGER_EXCEPTION("Network file doesn't exist");
+    }
     network::Network net(argv[1], reporter);
     net.dot(argv[2]);
   }
