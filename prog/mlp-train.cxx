@@ -30,87 +30,6 @@
 #include <sstream>
 
 /**
- * Given an output and a target, calculates the MSE for that amount of
- * patterns.
- *
- * @param output The output of the network
- * @param target The target of the network
- */
-double mse (const data::PatternSet& output, const data::PatternSet& target)
-{
-  data::PatternSet error(target);
-  error -= output;
-  return data::mean_square(error);
-}
-
-/**
- * Returns the maximum value of the SP product for the given output and
- * targers. This procedure will pass a cut line from the min(target) to
- * max(target) and will check which events are wrongly classified on both
- * scenarios. This will determine the classification efficiency for both
- * classes of data. This is used to compute:
- *
- * @f[
- * SP = max( (eff1 + eff2) \times (eff1 \times eff2) )
- * @f]
- *
- * Which is the returned value for this function.
- *
- * @param output The output of the network
- * @param target The target of the network
- * @param eff1 The efficiency for the classification of class 1
- * @param eff2 The efficiency for the classification of class 2
- * @param thres The threshold that gives the above efficiencies
- */
-double sp (const data::PatternSet& output, const data::PatternSet& target,
-	   double& eff1, double& eff2, double& thres)
-{
-  const double SCAN_STEP = 0.001; //1 per thousand of the target delta
-  if (output.pattern_size() > 1 || target.pattern_size() > 1) {
-    RINGER_DEBUG1("I can only calculate the SP product if the pattern sizes"
-		  " of `output' and `target' are equal to 1. Exception"
-		  " thrown.");
-    throw RINGER_EXCEPTION("Cannot calculate SP product");
-  }
-  const data::Pattern o = output.ensemble(0);
-  const data::Pattern t = target.ensemble(0);
-  data::MinExtractor minima;
-  data::Feature min = minima(t);
-  data::MaxExtractor maxima;
-  data::Feature max = maxima(t);
-  data::Feature step = (max-min)*SCAN_STEP;
-  data::Feature middle = (max+min)/2;
-  double sp = 0;
-  for (data::Feature i = min; i <= max; i += step) {
-    unsigned int success1 = 0;
-    unsigned int failure1 = 0;
-    unsigned int success2 = 0;
-    unsigned int failure2 = 0;
-    for (unsigned int j = 0; j < t.size(); ++j) {
-      if (t[j] > middle) {
-	if (o[j] >= i) ++success2;
-	else ++failure2;
-      }
-      else {
-	if (o[j] < i) ++success1;
-	else ++failure1;
-      }
-    }
-    //calculates the SP product for this threshold
-    double temp_eff1 = ((double)success1)/(success1 + failure1);
-    double temp_eff2 = ((double)success2)/(success2 + failure2);
-    double temp_sp = (temp_eff1 + temp_eff2) * (temp_eff1 * temp_eff2);
-    if (temp_sp > sp) {
-      sp = temp_sp;
-      eff1 = temp_eff1;
-      eff2 = temp_eff2;
-      thres = i;
-    }
-  }
-  return sp;
-}
-
-/**
  * Returns the basename of a file, without its extension and diretory prefixes
  * 
  * @param fullname The name of the file
@@ -430,8 +349,8 @@ int main (int argc, char** argv)
   //schema for each class (2 classes -> 1 output)
   std::vector<size_t> hlayer(1, par.nhidden);
   config::NeuronStrategyType nstrat = config::NEURON_BACKPROP;
-  config::Parameter* nsparam = 
-    new config::NeuronBackProp(config::NeuronBackProp::TANH);
+  config::NeuronBackProp::ActivationFunction actfun = config::NeuronBackProp::TANH;
+  config::Parameter* nsparam = new config::NeuronBackProp(actfun);
   config::SynapseStrategyType sstrat = config::SYNAPSE_BACKPROP;
   config::Parameter* ssparam =
     new config::SynapseBackProp(par.lrate, par.momentum, par.lrdecay);
@@ -492,6 +411,7 @@ int main (int argc, char** argv)
     //Trains until the MSE or SP product stabilizes
     double val = 1;
     double var = 1;
+
     double prev = 0; //previous
     size_t i = 0;
     double best_val = val;
@@ -513,8 +433,8 @@ int main (int argc, char** argv)
 	  net.run(test, output);
 	  double sp_val;
 	  if (db.size() == 2)
-	    sp_val = sp(output, test_target, eff1, eff2, thres);
-	  double mse_val = mse(output, test_target);
+	    sp_val = data::sp(output, test_target, eff1, eff2, thres);
+	  double mse_val = data::mse(output, test_target);
 	  mseevo << i << " " << mse_val;
 	  spevo << i << " " << sp_val;
 	  prev = val;
@@ -548,8 +468,8 @@ int main (int argc, char** argv)
 	  net.run(train2, output);
 	  double sp_val;
 	  if (db.size() == 2) 
-	    sp_val = sp(output, target2, eff1, eff2, thres);
-	  double mse_val = mse(output, target2);
+	    sp_val = data::sp(output, target2, eff1, eff2, thres);
+	  double mse_val = data::mse(output, target2);
 	  mseevo << " " << mse_val << "\n";
 	  spevo << " " << sp_val << "\n";
 	}
@@ -580,22 +500,22 @@ int main (int argc, char** argv)
     network::Network bestnet(par.endnet, reporter);
     data::PatternSet train_output(target2);
     bestnet.run(train2, train_output);
-    double mse_train = mse(train_output, target2);
+    double mse_train = data::mse(train_output, target2);
     double sp_train = 0;
     double train_eff1 = 0;
     double train_eff2 = 0;
     double train_thres = 0;
-    if (db.size() == 2) sp_train = sp(train_output, target2,
+    if (db.size() == 2) sp_train = data::sp(train_output, target2,
 				      train_eff1, train_eff2, train_thres);
     data::PatternSet test_output(target);
     bestnet.run(test, test_output);
-    double mse_test = mse(test_output, test_target);
+    double mse_test = data::mse(test_output, test_target);
     double sp_test = 0;
     double test_eff1 = 0;
     double test_eff2 = 0;
     double test_thres = 0;
-    if (db.size() == 2) sp_test = sp(test_output, test_target,
-				     test_eff1, test_eff2, test_thres);
+    if (db.size() == 2) sp_test = data::sp(test_output, test_target,
+					   test_eff1, test_eff2, test_thres);
     std::map<std::string, data::PatternSet*> data;
     data["train-output"] = &train_output;
     data["train-target"] = &target2;
