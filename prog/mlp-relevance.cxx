@@ -21,20 +21,6 @@
 #include <popt.h>
 
 /**
- * Given an output and a target, calculates the MSE for that amount of
- * patterns.
- *
- * @param output The output of the network
- * @param target The target of the network
- */
-double mse (const data::PatternSet& output, const data::PatternSet& target)
-{
-  data::PatternSet error(target);
-  error -= output;
-  return data::mean_square(error);
-}
-
-/**
  * Returns the basename of a file, without its extension and diretory prefixes
  * 
  * @param fullname The name of the file
@@ -224,8 +210,8 @@ int main (int argc, char** argv)
       //run changed copies through the network
       net.run(test_copy, test_copy_output);
       net.run(train_copy, train_copy_output);
-      out << i << " " << mse(test_output, test_copy_output) << " "
-	  << mse(train_output, train_copy_output) << "\n";
+      out << i << " " << data::mse(test_output, test_copy_output) << " "
+	  << data::mse(train_output, train_copy_output) << "\n";
     }
     RINGER_REPORT(reporter, "Cleaning up and exiting...");
 
