@@ -254,7 +254,7 @@ void data::PatternSet::erase_ensemble (const size_t& pos)
   else { //in the extremes, it is easier to cut
     if (pos == 0) {
       gsl_matrix_const_view v = 
-	gsl_matrix_const_submatrix(m_data, 1, 1, m_data->size1, 
+	gsl_matrix_const_submatrix(m_data, 0, 1, m_data->size1, 
 				   m_data->size2-1);
       gsl_matrix_memcpy(new_data, &v.matrix);
     }
