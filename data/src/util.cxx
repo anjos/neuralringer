@@ -8,7 +8,11 @@
 
 #include "data/util.h"
 #include "data/MeanExtractor.h"
+#include "data/MaxExtractor.h"
+#include "data/MinExtractor.h"
 #include "gsl/gsl_pow_int.h"
+#include "sys/Exception.h"
+#include "sys/debug.h"
 #include <cmath>
 
 data::Feature data::mean_square (const data::PatternSet& p)
