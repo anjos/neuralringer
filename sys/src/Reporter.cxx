@@ -32,7 +32,7 @@ sys::Reporter::Reporter(const std::string& type)
   }
 
   ///Start-up report: the date
-  report("This is the NeuralRinger v0.3 Reporter, good day.");
+  report("This is the NeuralRinger v0.4.1 Reporter, good day.");
   RINGER_DEBUG1("Debug level 1 is activated.");
   RINGER_DEBUG2("Debug level 2 is activated.");
   RINGER_DEBUG3("Debug level 3 is activated.");
