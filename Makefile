@@ -10,7 +10,7 @@ sinclude config.mk
 PROJECT_DIR	= sys data roiformat rbuild config network
 GARB	= $(shell find . -name "*~" -or -name "*.o")
 
-all: build
+all: build progs
 
 build:
 	$(foreach dir, $(PROJECT_DIR), $(MAKE) -C $(dir) install;)
