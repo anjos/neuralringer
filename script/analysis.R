@@ -132,6 +132,7 @@ roc <- function(o, t, set, draw=TRUE) {
     fal <- length(jet[jet<i])/length(jet);
     fal.jet <- c(fal.jet, fal);
     temp.sp <- (eff + (1-fal)) * (eff * (1-fal));
+    if (is.nan(temp.sp)) temp.sp <- 0;
     if (temp.sp > sp) {
       sp = temp.sp;
       sp.eff.elec = eff;
