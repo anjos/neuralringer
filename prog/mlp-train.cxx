@@ -167,7 +167,7 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
   unsigned int nhidden=0;
   unsigned int epoch=1;
   data::Feature lrate=0.1;
-  data::Feature lrdecay=0.0;
+  data::Feature lrdecay=1.0;
   data::Feature momentum=0.0;
   data::Feature trainperc=0.5;
   bool spstop = true;
@@ -228,7 +228,7 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
       "double, x > 0: default is 0.001" },
     { "learn-rate-decay", 'y', POPT_ARG_DOUBLE, &lrdecay, 'y',
       "the learning rate decay I should use for training",
-      "double, 0 < x <= 1: default is 0.0 (no decay)" },
+      "double, 0 < x <= 1: default is 1.0 (no decay)" },
     { "compress-output", 'z', POPT_ARG_NONE, 0, 'z',
       "should compress the output, e.g. 2 classes -> 1 output for the network",
       "default is false" },
@@ -315,9 +315,9 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
       spstop = false;
       break;
     case 'y': //learn-rate decay
-      if (lrdecay < 0 || lrdecay >= 1) {
+      if (lrdecay <= 0 || lrdecay > 1) {
 	RINGER_DEBUG1("Trying to set the learning rate decay to " << lrdecay);
-	throw RINGER_EXCEPTION("Learning rate decay should be between [0,1)");
+	throw RINGER_EXCEPTION("Learning rate decay should be between (0,1]");
       }
       RINGER_DEBUG1("Learning rate decay set to " << lrdecay);
       break;
