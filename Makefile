@@ -15,7 +15,7 @@ all: build progs
 build:
 	$(foreach dir, $(PROJECT_DIR), $(MAKE) -C $(dir) install;)
 
-progs: ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot
+progs: ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run
 
 ringer: prog/ringer.o
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
@@ -33,6 +33,9 @@ xml2text: prog/xml2text.o
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
 
 mlp-train: prog/mlp-train.o
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+
+mlp-run: prog/mlp-run.o
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
 
 mlp-relevance: prog/mlp-relevance.o
