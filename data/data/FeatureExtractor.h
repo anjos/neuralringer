@@ -28,7 +28,6 @@ namespace data {
      * Defines the only operation on a Pattern.
      *
      * @param in The Pattern to transform using this operator
-     * @param out The Pattern to output
      */
     virtual data::Feature operator() (const data::Pattern& in) const =0;
 

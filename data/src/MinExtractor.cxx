@@ -1,7 +1,7 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file MaxExtractor.cxx
+ * @file data/src/MinExtractor.cxx
  * @author <a href="mailto:Andre.dos.Anjos@cern.ch">Andre DOS ANJOS</a> 
  * $Author$
  * $Revision$

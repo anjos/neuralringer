@@ -34,8 +34,6 @@ namespace strategy {
     /**
      * Defines the basic learning interface for neurons.
      *
-     * @param propagate Train data that has to be propagated to the synapses,
-     * usually representing the change rate
      * @param output The current neuron state, which is the same as the output
      * of the previous run(s).
      * @param lesson Something given by my caller.

@@ -106,7 +106,6 @@ namespace network {
      * dot-file format.
      *
      * @param os The output stream to consider
-     * @param bias If this is a bias neuron, I have to do differently
      */
     virtual bool dot(std::ostream& os) const;
 
@@ -119,7 +118,8 @@ namespace network {
      * @param bias If this is a bias neuron, I have to do differently
      * @param bias_value The value of the bias node
      */
-    virtual bool dot(std::ostream& os, bool bias, data::Feature bias_value) const;
+    virtual bool dot(std::ostream& os, bool bias, 
+		     data::Feature bias_value) const;
 
   private: ///not implemented
     InputNeuron (const InputNeuron& other);

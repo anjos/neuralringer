@@ -42,9 +42,8 @@ namespace strategy {
    *    @f]
    * -# Adjust the learning rate using the decay parameter;
    *    @f[
-   *    \eta_{n+1} = \eta_{n} \times \gamma \text{if} E_{n} > E_{n-1}
-   *    \eta_{n+1} = \eta_{n} \times (1 + \frac{1-\gamma}{10})
-   *    \text{otherwise}
+   *    \eta_{n+1} = \eta_{n} \times \gamma if E_{n} > E_{n-1}
+   *    \eta_{n+1} = \eta_{n} \times (1 + \frac{1-\gamma}{10}) otherwise
    *    @f]
    */
   class SynapseBackProp : public strategy::SynapseStrategy {

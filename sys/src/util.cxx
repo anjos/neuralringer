@@ -1,7 +1,7 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file system/src/util.cxx
+ * @file sys/src/util.cxx
  *
  * Implements system utilities
  */

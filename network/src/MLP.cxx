@@ -22,8 +22,8 @@ static data::RandomInteger rnd; //default initializer, do it once
  * Creates a new synapse based on strategy types and parameters. The returned
  * value should be deleted by yourself.
  *
- * @param syn_strat_type The global synapse strategy type for this network
- * @param syn_params The global synapse strategy parameters to apply for
+ * @param type The global synapse strategy type for this network
+ * @param params The global synapse strategy parameters to apply for
  * this network
  */
 network::Synapse* create_synapse (const config::SynapseStrategyType& type,

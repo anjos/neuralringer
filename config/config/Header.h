@@ -1,7 +1,7 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file Header.h
+ * @file config/config/Header.h
  *
  * @brief Describes how to parse a network configuration file header.
  */

@@ -101,7 +101,7 @@ namespace roiformat {
     /**
      * Streams in data into a cell.
      *
-     * @param File The roiformat::File to take the data from.
+     * @param f The roiformat::File to take the data from.
      */
     sys::File& operator<< (sys::File& f);
 

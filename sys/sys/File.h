@@ -17,10 +17,6 @@
 #include <bits/ios_base.h>
 #include "sys/FileImplementation.h"
 
-/**
- * Encompass all entities to read, write and manipulate RoI dump files
- * produced with the modified T2Calo.
- */
 namespace sys {
 
   /**
@@ -37,7 +33,7 @@ namespace sys {
      * filename.
      *
      * @param filename The name of the file to bind to.
-     * @param openmode How to open the file, i.e., permissions
+     * @param m How to open the file, i.e., permissions
      * @param sep The standard separator to use
      */
     File (const std::string& filename, 

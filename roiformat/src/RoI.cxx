@@ -1,7 +1,7 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file roiformat/scr/RoI.cxx
+ * @file roiformat/src/RoI.cxx
  * @author <a href="mailto:Andre.dos.Anjos@cern.ch">Andre Rabello dos Anjos</a> 
  * $Author$
  * $Revision$

@@ -125,9 +125,6 @@ std::string stripname (const std::string& fullname)
   return fullname.substr(start, end-start);
 }
 
-/**
- * Defines a set of options for program execution
- */
 typedef struct param_t {
   std::string db; ///< database to use for training and testing
   std::string startnet; ///< name of the starting neural net file

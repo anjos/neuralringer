@@ -1,7 +1,7 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file data/src/test_convert.cxx
+ * @file data/src/mytest_convert.cxx
  *
  * Gets a file from ftp://ftp.ics.uci.edu/pub/machine-learning-databases and
  * convert it to my internal XML format for databases. This is a very rusty

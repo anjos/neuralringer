@@ -30,7 +30,7 @@ namespace sys {
      * Opens a new plain text file.
      *
      * @param filename The name of the file to open
-     * @param openmode The openning mode.
+     * @param m The openning mode.
      */
     Plain (const std::string& filename, 
 	   std::ios_base::openmode m = std::ios_base::in);

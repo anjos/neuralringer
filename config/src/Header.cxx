@@ -1,7 +1,7 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file Header.cxx
+ * @file config/src/Header.cxx
  *
  * Implements header reading.
  */

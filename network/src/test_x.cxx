@@ -1,7 +1,7 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file test_run.cxx
+ * @file network/src/test_x.cxx
  *
  * Loads a neural network for running.
  */

@@ -46,9 +46,6 @@ std::string stripname (const std::string& fullname)
   return fullname.substr(start, end-start);
 }
 
-/**
- * Defines a set of options for program execution
- */
 typedef struct param_t {
   std::string roidump; ///< roi dump file to read data from 
   std::string ringconfig; ///< ring configuration XML file

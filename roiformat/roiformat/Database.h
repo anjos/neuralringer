@@ -81,7 +81,7 @@ namespace roiformat {
     /**
      * Get a handle to all RoI's, organized by LVL1 id and then by RoI id.
      *
-     * @param v Vector of RoI pointers I have.
+     * @param vr Vector of RoI pointers I have.
      * @param start The first RoI to take
      * @param quantity The total number of RoI's the user wants.
      */

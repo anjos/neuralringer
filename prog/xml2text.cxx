@@ -34,9 +34,6 @@ std::string stripname (const std::string& fullname)
   return fullname.substr(start, end-start);
 }
 
-/**
- * Defines a set of options for program execution
- */
 typedef struct param_t {
   bool separate; ///< puts each class in a different file
   std::string input; ///< the name of the input XML file

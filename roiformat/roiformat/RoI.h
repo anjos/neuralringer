@@ -43,7 +43,7 @@ namespace roiformat {
      * @param phi The phi location spotted by LVL1
      */
     RoI (const std::vector<roiformat::Cell>& vc,
-	 unsigned int lvl1_id, unsigned int roid_id,
+	 unsigned int lvl1_id, unsigned int roi_id,
 	 const double& eta, const double& phi);
 
     /**
@@ -146,7 +146,7 @@ namespace roiformat {
  * How to read my own data from a roiformat::File
  *
  * @param f The roiformat::File to read the data from
- * @param c The RoI where to put the data
+ * @param r The RoI where to put the data
  */
 sys::File& operator>> (sys::File& f, roiformat::RoI& r);
 
@@ -154,7 +154,7 @@ sys::File& operator>> (sys::File& f, roiformat::RoI& r);
  * How to write my own data to a roiformat::File
  *
  * @param f The roiformat::File to write the data to
- * @param c The RoI where to take the data from
+ * @param r The RoI where to take the data from
  */
 sys::File& operator<< (sys::File& f, const roiformat::RoI& r);
 
