@@ -14,6 +14,7 @@
 #define RINGER_SYS_PLAIN_H
 
 #include "sys/FileImplementation.h"
+#include <locale>
 #include <bits/ios_base.h>
 #include <fstream>
 

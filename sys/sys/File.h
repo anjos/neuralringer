@@ -14,6 +14,7 @@
 #define RINGER_SYS_FILE_H
 
 #include <string>
+#include <locale>
 #include <bits/ios_base.h>
 #include "sys/FileImplementation.h"
 
