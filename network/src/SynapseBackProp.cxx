@@ -54,7 +54,7 @@ data::Feature strategy::SynapseBackProp::teach (const data::Ensemble& input,
   data::MeanExtractor mean;
   data::Feature delta = m_lrate * mean(lesson * input);
   RINGER_DEBUG2("Calculating synaptic weight adjustment with change = "
-		<< dw << ", learning rate = " << m_lrate
+		<< delta << ", learning rate = " << m_lrate
 		<< ", momentum = " << m_momentum
 		<< " and learning rate decay = " << m_decay);
   data::Feature retval = (1-m_momentum)*delta + (m_momentum)*m_prev_delta;
