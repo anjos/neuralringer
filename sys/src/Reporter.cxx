@@ -62,6 +62,7 @@ bool sys::Reporter::fatal(const std::string& info)
   std::string s = sys::currenttime("short") + ": **FATAL** " + info + "\n";
   m_impl->write(s);
   std::exit(1);
+  return true;
 }
 
 bool sys::Reporter::except(const std::string& info)
