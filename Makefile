@@ -66,13 +66,13 @@ else
 endif
 
 dist: clean doc
-	@mv doxy-doc ../ringer-doc-$(VERSION)
+	@mv doxy-doc ../$(PACKAGE)-doc-$(VERSION)
 	@cd .. && \
-	 tar cvfj ringer-doc-$(VERSION).tar.bz2 ringer-doc-$(VERSION) && \
-	 rm -rf ringer-doc-$(VERSION) && cd -
-	@cd .. && mv ringer ringer-$(VERSION) && \
-	 tar cvfj ringer-$(VERSION).tar.bz2 ringer-$(VERSION) \
+	 tar cvfj $(PACKAGE)-doc-$(VERSION).tar.bz2 $(PACKAGE)-doc-$(VERSION) && \
+	 rm -rf $(PACKAGE)-doc-$(VERSION) && cd -
+	@cd .. && mv $(PACKAGE) $(PACKAGE)-$(VERSION) && \
+	 tar cvfj $(PACKAGE)-$(VERSION).tar.bz2 $(PACKAGE)-$(VERSION) \
 	 --exclude='.svn' && \
-	 mv ringer-$(VERSION) ringer && cd -
-	@echo Ringer distribution and documentation packed
+	 mv $(PACKAGE)-$(VERSION) $(PACKAGE) && cd -
+	@echo $(PACKAGE) distribution and documentation packed
 
