@@ -17,6 +17,7 @@
 #include "sys/Reporter.h"
 #include "sys/Exception.h"
 #include "sys/debug.h"
+#include "sys/util.h"
 #include "config/NeuronBackProp.h"
 #include "config/SynapseBackProp.h"
 #include "config/type.h"
@@ -143,6 +144,7 @@ typedef struct param_t {
   unsigned int stopiter; ///< number of iterations w/o variance to stop
   data::Feature stopthres; ///< the threshold to consider for stopping
   unsigned int sample; ///< the sample interval for MSE or SP
+  unsigned int hardstop; ///< where to hard stop the training
 } param_t;
 
 /**
@@ -173,6 +175,7 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
   unsigned int stopiter=100;
   data::Feature stopthres=0.001; //0.1%
   unsigned int sample=5;
+  unsigned int hardstop=0;
 
   //return `arg' is set to !=0, so the system processes everything in the
   //while loop bellow.
@@ -180,8 +183,11 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
     { "train-percentage", 'a', POPT_ARG_DOUBLE, &trainperc, 'a',
       "how much of the database to use for traning the network",
       "double, -1.0 < x < 1.0: default is 0.5"}, 
+    { "hard-stop", 'b', POPT_ARG_INT, &hardstop, 'b',
+      "number of epochs after which to hard stop the training session",
+      "uint > 0: no defaults" },
     { "epoch", 'c', POPT_ARG_INT, &epoch, 'c',
-      "how many entries per training step should I use", 
+      "how many entries per training step should I use",
       "uint > 0: default is 1 (online)" },
     { "db", 'd', POPT_ARG_STRING, &db, 'd',
       "location of the database to use for training and testing", "path" },
@@ -248,11 +254,19 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
       }
       RINGER_DEBUG1("Training percentage set to " << trainperc);
       break;
+    case 'b': //hardstop
+      RINGER_DEBUG1("I'll hardstop the training after " << hardstop
+		    << "epochs, if nothing happens before");
+      break;
     case 'c': //epoch
       RINGER_DEBUG1("Training epoch is " << epoch);
       break;
     case 'd': //db
       RINGER_DEBUG1("Database name is " << db);
+      if (!sys::exists(db)) {
+	RINGER_DEBUG1("Database file " << db << " doesn't exist.");
+	throw RINGER_EXCEPTION("Database file doesn't exist");
+      }
       break;
     case 'e': //end-net name
       RINGER_DEBUG1("End Network name is " << endnet);
@@ -361,6 +375,11 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
 		  << " between 1 and infinity.");
     throw RINGER_EXCEPTION("Cycles to stop cannot be zero");
   }
+  if (!hardstop) {
+    RINGER_DEBUG1("I cannot work with an unbound network training."
+		  << " Please provide me a hardstop.");
+    throw RINGER_EXCEPTION("No hardstop parameter specified.");
+  } else p.hardstop = hardstop;
   p.epoch = epoch;
   p.lrate = lrate;
   p.lrdecay = lrdecay;
@@ -475,8 +494,16 @@ int main (int argc, char** argv)
     double var = 1;
     double prev = 0; //previous
     size_t i = 0;
+    double best_val = val;
     while (stopnow) {
       net.train(train, target, par.epoch);
+      --par.hardstop;
+      if (!par.hardstop) {
+	RINGER_REPORT(reporter, "Hard-stop limit has been reached. Stopping"
+		      << " the training session by force.");
+	stopnow = 0;
+	continue;
+      }
 
       if (i%par.sample == 0) { //time to check performance
 	double eff1, eff2, thres;
@@ -490,6 +517,31 @@ int main (int argc, char** argv)
 	  double mse_val = mse(output, test_target);
 	  mseevo << i << " " << mse_val;
 	  spevo << i << " " << sp_val;
+	  prev = val;
+	  if (par.spstop) val = sp_val;
+	  else val = mse_val;
+	  var = std::fabs(val-prev)/prev;
+	  bool savenet = false;
+	  if (par.spstop) { //the greater, the better
+	    if (val > best_val) {
+	      best_val = val;
+	      savenet = true;
+	    }
+	  }
+	  else {
+	    if (var < best_val) {
+	      best_val = val;
+	      savenet = true;
+	    }
+	  }
+	  if (savenet) { //save the current network because it is the best
+	    //save result
+	    RINGER_REPORT(reporter, "Saving best network so far at \""
+			  << par.endnet << "\"...");
+	    config::Header end_header("Andre DOS ANJOS", par.output, 
+				      "1.0", time(0), "Trained network");
+	    net.save(par.endnet, &end_header);
+	  }
 	}
 	{
 	  //train set analysis
@@ -498,10 +550,6 @@ int main (int argc, char** argv)
 	  if (db.size() == 2) 
 	    sp_val = sp(output, target2, eff1, eff2, thres);
 	  double mse_val = mse(output, target2);
-	  prev = val;
-	  if (par.spstop) val = sp_val;
-	  else val = mse_val;
-	  var = std::fabs(val-prev)/prev;
 	  mseevo << " " << mse_val << "\n";
 	  spevo << " " << sp_val << "\n";
 	}
@@ -525,10 +573,13 @@ int main (int argc, char** argv)
       ++i; //go to next epoch
     }
 
-    RINGER_REPORT(reporter, 
+    RINGER_REPORT(reporter,
 		  "Saving training and testing outputs and targets.");
+    
+    //reload the best network saved so far.
+    network::Network bestnet(par.endnet, reporter);
     data::PatternSet train_output(target2);
-    net.run(train2, train_output);
+    bestnet.run(train2, train_output);
     double mse_train = mse(train_output, target2);
     double sp_train = 0;
     double train_eff1 = 0;
@@ -537,7 +588,7 @@ int main (int argc, char** argv)
     if (db.size() == 2) sp_train = sp(train_output, target2,
 				      train_eff1, train_eff2, train_thres);
     data::PatternSet test_output(target);
-    net.run(test, test_output);
+    bestnet.run(test, test_output);
     double mse_test = mse(test_output, test_target);
     double sp_test = 0;
     double test_eff1 = 0;
@@ -563,12 +614,6 @@ int main (int argc, char** argv)
     output_db.save(par.output);
     RINGER_REPORT(reporter, "Network output saved to \"" << par.output
 		  << "\".");
-
-    //save result
-    config::Header end_header("Andre DOS ANJOS", par.output, "1.0", time(0),
-			      "Final set");
-    net.save(par.startnet, &end_header);
-    net.save(par.endnet);
 
     //print summary:
     if (db.size() == 2) {
