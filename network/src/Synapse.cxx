@@ -80,7 +80,8 @@ void network::Synapse::learning (const bool& switch_to)
 
 void network::Synapse::pass (const data::Ensemble& data)
 {
-  RINGER_DEBUG3("Passing data through synapse " << m_id << ". Saving state...");
+  RINGER_DEBUG3("Passing data through synapse " << m_id 
+		<< ". Saving state...");
 #ifdef RINGER_DEBUG
   //helps counting resizements
   if ( data.size() != m_state.size() ) {
