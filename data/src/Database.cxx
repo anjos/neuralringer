@@ -116,7 +116,7 @@ data::Database::Database (const data::Header* header,
   m_header = new data::Header(*header);
   for (std::map<std::string, data::PatternSet*>::const_iterator 
 	 it = data.begin(); it != data.end(); ++it)
-    m_data[it->first] = new data::PatternSet(*it->second);
+    m_data[it->first] = new data::PatternSet(*it->second); //copy
 
   //check pattern sizes
   if (m_data.size() != 0) {
