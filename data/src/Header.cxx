@@ -1,0 +1,93 @@
+//Dear emacs, this is -*- c++ -*-
+
+/**
+ * @file data/src/Header.cxx
+ *
+ * Implements header reading.
+ */
+
+#include "data/Header.h"
+#include "sys/xmlutil.h"
+#include "sys/util.h"
+#include "sys/debug.h"
+#include <libxml/tree.h>
+
+data::Header::Header(const xmlNodePtr node)
+{
+  xmlNodePtr it = sys::get_next_element(node->children);
+  m_author = sys::get_element_string(it); 
+  it = sys::get_next_element(it);
+  m_name = sys::get_element_string((xmlNodePtr)it);
+  it = sys::get_next_element(it);
+  m_version = sys::get_element_string((xmlNodePtr)it);
+  it = sys::get_next_element(it);
+  m_created = sys::get_element_date((xmlNodePtr)it);
+  it = sys::get_next_element(it);
+  m_lastSaved = sys::get_element_date((xmlNodePtr)it);
+  it = sys::get_next_element(it);
+  if (it) m_comment = sys::get_element_string((xmlNodePtr)it);
+  RINGER_DEBUG3("Loaded header information for database \"" << m_name
+	      << "\" version \"" << m_version << "\" from \"" 
+	      << m_author << "\" last saved on \"" 
+	      << sys::stringtime(&m_lastSaved) << "\"");
+}
+
+data::Header::Header(const std::string& author,
+         	     const std::string& name,
+		     const std::string& version,
+		     const time_t& created,
+		     const std::string& comment)
+  : m_author(author),
+    m_name(name),
+    m_version(version),
+    m_created(created),
+    m_lastSaved(time(0)),
+    m_comment(comment)
+{
+  RINGER_DEBUG3("Loaded header draft information for database \"" << m_name
+	      << "\" version \"" << m_version << "\" from \"" 
+	      << m_author << "\" last saved on \"" 
+	      << sys::stringtime(&m_lastSaved) << "\"");
+}
+
+data::Header::Header (const Header& other)
+  : m_author(other.m_author),
+    m_name(other.m_name),
+    m_version(other.m_version),
+    m_created(other.m_created),
+    m_lastSaved(time(0)),
+    m_comment(other.m_comment)
+{
+  RINGER_DEBUG3("Built header draft information from another header \"" 
+	      << m_name << "\" version \"" << m_version << "\" from \"" 
+	      << m_author << "\" last saved on \"" 
+	      << sys::stringtime(&m_lastSaved) << "\"");
+}
+
+data::Header& data::Header::operator= (const Header& other)
+{
+  m_author = other.m_author;
+  m_name = other.m_name;
+  m_version = other.m_version;
+  m_created = other.m_created;
+  m_lastSaved = time(0);
+  m_comment = other.m_comment;
+  RINGER_DEBUG3("Copied header draft information from another header \"" 
+	      << m_name << "\" version \"" << m_version << "\" from \"" 
+	      << m_author << "\" last saved on \"" 
+	      << sys::stringtime(&m_lastSaved) << "\"");
+  return *this;
+}
+
+xmlNodePtr data::Header::node ()
+{
+  xmlNodePtr root = sys::make_node("header");
+  sys::put_element_text(root, "author", m_author);
+  sys::put_element_text(root, "name", m_name);
+  sys::put_element_text(root, "version", m_version);
+  sys::put_element_date(root, "created", m_created);
+  sys::put_element_date(root, "lastSaved", time(0));
+  if (m_comment.length()) //optional comment to insert
+    sys::put_element_text(root, "comment", m_comment);
+  return root;
+}
