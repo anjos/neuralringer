@@ -184,7 +184,7 @@ namespace network {
     Synapse& operator= (const Synapse& other); ///< not implemented
 
     /**
-     * You can't create a Synapse from other Synapse.
+     * You can't copy a Synapse.
      */
     Synapse(const Synapse& other); ///< not implemented
 
