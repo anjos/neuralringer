@@ -17,6 +17,7 @@
 #include "sys/Reporter.h"
 #include "sys/Exception.h"
 #include "sys/debug.h"
+#include "sys/util.h"
 #include "data/PatternSet.h"
 #include "data/SumExtractor.h"
 #include "data/Database.h"
@@ -99,9 +100,17 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
     poptPrintUsage(optCon, stderr, 0);
     throw RINGER_EXCEPTION("No dump to read data from");
   }
+  if (!sys::exists(p.roidump)) {
+    RINGER_DEBUG1("RoI dump file " << p.roidump << " doesn't exist.");
+    throw RINGER_EXCEPTION("RoI dump file doesn't exist");
+  }
   if (!p.ringconfig.size()) {
     poptPrintUsage(optCon, stderr, 0);
     throw RINGER_EXCEPTION("No ring configuration file");
+  }
+  if (!sys::exists(p.ringconfig)) {
+    RINGER_DEBUG1("Ring config file " << p.ringconfig << " doesn't exist.");
+    throw RINGER_EXCEPTION("Ring config file doesn't exist");
   }
   poptFreeContext(optCon);
 

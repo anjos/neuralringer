@@ -13,6 +13,7 @@
 
 #include "roiformat/Database.h"
 #include "sys/debug.h"
+#include "sys/util.h"
 #include <cstdlib>
 #include "sys/Reporter.h"
 
@@ -36,6 +37,9 @@ int main (int argc, char** argv)
   RINGER_REPORT(reporter, "Re-dumping event " << lvl1_id << "/" 
 	        << roi_id << " from file " << filename << "...");
   roiformat::Database db(reporter);
+  if (!sys::exists(filename)) {
+    RINGER_FATAL(reporter, "Input file " << filename << " doesn't exist.");
+  }
   db.load(filename);
   const roiformat::RoI* roi = db.get(lvl1_id, roi_id);
   if (!roi) {

@@ -13,6 +13,7 @@
 #include "sys/Reporter.h"
 #include "sys/Exception.h"
 #include "sys/debug.h"
+#include "sys/util.h"
 #include "network/Network.h"
 #include <cstdlib>
 #include <string>
@@ -107,9 +108,17 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
       }
     case 'd': //db
       RINGER_DEBUG1("Database name is " << db);
+      if (!sys::exists(db)) {
+	RINGER_DEBUG1("Database file " << db << " doesn't exist.");
+	throw RINGER_EXCEPTION("Database file doesn't exist");
+      }
       break;
     case 'n': //network
       RINGER_DEBUG1("Network name is " << net);
+      if (!sys::exists(net)) {
+	RINGER_DEBUG1("Network file " << net << " doesn't exist.");
+	throw RINGER_EXCEPTION("Network file doesn't exist");
+      }
       break;
     case 'o': //where to save the relevance output
       RINGER_DEBUG1("Saving relevance calculations to \"" 
