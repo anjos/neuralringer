@@ -16,7 +16,7 @@ prefix=`basename $1 .xml`;
 mydate=`date +%d.%B.%Y-%H:%M:%S`;
 results=$prefix-$mydate;
 trainperc="--train-percentage=-0.5";
-trainparam="--epoch=50 --stop-iteration=10 --learn-rate=0.2 --learn-rate-decay=0.9995 --momentum=0.9 --hidden=10 --stop-threshold=0.001 --db=../$1 --sample-interval=20";
+trainparam="--epoch=200 --stop-iteration=10 --learn-rate=0.1 --learn-rate-decay=0.9995 --momentum=0 --hidden=10 --stop-threshold=0.001 --db=../$1 --sample-interval=20";
 mkdir -pv $results;
 current=`pwd`;
 cd $results;
@@ -33,7 +33,7 @@ mlp-train $trainperc $trainparam
 
 # converts the outputs (train and test), with targets, from XML to text
 xml2text -si $prefix.out.xml $prefix.out.txt
-echo "XML to Text conversion parameters are:" >> $pfile:
+echo "XML to Text conversion parameters are:" >> $pfile;
 echo "[xml2text] -si $prefix.out.xml $prefix.out.txt" >> $pfile;
 echo >> $pfile;
 
