@@ -295,7 +295,7 @@ int main (int argc, char** argv)
 	switch(jt->config().normalisation()) {
 	case rbuild::RingConfig::SET:
 	  if (setenergy > ENERGY_THRESHOLD)
-	    jt->pattern() /= std::fabs(setenergy);
+	    jt->pattern() /= fabs(setenergy);
 	  else {
 	    RINGER_WARN(reporter, "Ignoring normalisation command \""
 			<< norm2str(jt->config().normalisation())
@@ -328,7 +328,7 @@ int main (int argc, char** argv)
 	//what is the normalisation strategy here? Do the rest of options
 	switch(jt->config().normalisation()) {
 	case rbuild::RingConfig::EVENT:
-	  if (event > ENERGY_THRESHOLD) jt->pattern() /= std::fabs(event);
+	  if (event > ENERGY_THRESHOLD) jt->pattern() /= fabs(event);
 	  else {
 	    RINGER_WARN(reporter, "Ignoring normalisation command \""
 			<< norm2str(jt->config().normalisation())
@@ -343,7 +343,7 @@ int main (int argc, char** argv)
 	case rbuild::RingConfig::SECTION:
 	  if (jt->config().section() == rbuild::RingConfig::EM) {
 	    if (emsection > ENERGY_THRESHOLD) 
-	      jt->pattern() /= std::fabs(emsection);
+	      jt->pattern() /= fabs(emsection);
 	    else {
 	      RINGER_WARN(reporter, "Ignoring normalisation command \""
 			  << norm2str(jt->config().normalisation())
@@ -358,7 +358,7 @@ int main (int argc, char** argv)
 	  }
 	  else {
 	    if (hadsection > ENERGY_THRESHOLD) 
-	      jt->pattern() /= std::fabs(hadsection);
+	      jt->pattern() /= fabs(hadsection);
 	    else {
 	      RINGER_WARN(reporter, "Ignoring normalisation command \""
 			  << norm2str(jt->config().normalisation())
