@@ -57,6 +57,37 @@ namespace data {
    */
   data::Feature abs_mean (const data::PatternSet& p);
 
+  /**
+   * Given an output and a target, calculates the MSE for that amount of
+   * patterns.
+   *
+   * @param output The output of the network
+   * @param target The target of the network
+   */
+  double mse (const data::PatternSet& output, const data::PatternSet& target);
+
+  /**
+   * Returns the maximum value of the SP product for the given output and
+   * targers. This procedure will pass a cut line from the min(target) to
+   * max(target) and will check which events are wrongly classified on both
+   * scenarios. This will determine the classification efficiency for both
+   * classes of data. This is used to compute:
+   *
+   * @f[
+   * SP = max( (eff1 + eff2) \times (eff1 \times eff2) )
+   * @f]
+   *
+   * Which is the returned value for this function.
+   *
+   * @param output The output of the network
+   * @param target The target of the network
+   * @param eff1 The efficiency for the classification of class 1
+   * @param eff2 The efficiency for the classification of class 2
+   * @param thres The threshold that gives the above efficiencies
+   */
+  double sp (const data::PatternSet& output, const data::PatternSet& target,
+	     double& eff1, double& eff2, double& thres);
+  
 }
 
 #endif /* DATA_UTIL_H */
