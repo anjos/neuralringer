@@ -187,7 +187,8 @@ bool network::Network::save (const std::string& file,
 
 bool network::Network::dot (const std::string& filename) const
 {
-  RINGER_DEBUG2("Trying to build a dot representation at \"" << filename << "\".");
+  RINGER_DEBUG2("Trying to build a dot representation at \"" 
+		<< filename << "\".");
   if (sys::exists(filename)) sys::backup(filename); 
   std::ofstream os(filename.c_str()); 
   if (!os) { 
@@ -198,8 +199,6 @@ bool network::Network::dot (const std::string& filename) const
   //start to dump
   os << "digraph network {" << std::endl 
      << " rankdir=LR; ranksep=\"1.0 equally\";concentrate=true;" << std::endl;
-  //if (m_config->header()) os << " title [label=\"" 
-  //			     << m_config->header()->name() << "\"]" << std::endl;
   //get the input neurons first
   for (std::vector<InputNeuron*>::const_iterator it = m_input.begin(); 
        it != m_input.end(); ++it) (*it)->dot(os);
