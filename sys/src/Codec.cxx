@@ -39,7 +39,7 @@ sys::ustring sys::Codec::transcode (const std::string& s) const
   xmlChar* out = (xmlChar*) xmlMalloc(out_size*sizeof(xmlChar));
   int temp = size - 1;
   int ret = m_handler->input(out, &out_size, (const xmlChar*)s.c_str(), &temp);
-  if ( ret || (temp != (int)(sizeof(xmlChar)*out_size)) ) {
+  if ((ret < 0) || (temp - size + 1)) {
     RINGER_DEBUG1("Transcoding to \"" << xmlGetCharEncodingName(m_encoding) 
 		<< "\" failed. [size=" << size << ", out_size=" << out_size
 		<< ", temp=" << temp << ", ret=" << ret << "]");
@@ -66,7 +66,7 @@ std::string sys::Codec::transcode (const sys::ustring& s) const
   int temp = size - 1;
   int ret = m_handler->output((xmlChar*)out, &out_size,
 			      (const xmlChar*)s.c_str(), &temp);
-  if ( ret || (out_size != (int)(sizeof(xmlChar)*temp)) ) {
+  if ((ret < 0) || (temp - size + 1)) {
     RINGER_DEBUG1("Transcoding to \"" << xmlGetCharEncodingName(m_encoding) 
 		<< "\" failed. [size=" << size << ", out_size=" << out_size
 		<< ", temp=" << temp << ", ret=" << ret << "]");

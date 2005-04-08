@@ -11,6 +11,7 @@
  * line. No headers or such.
  */
 
+#include "data/RoIPatternSet.h"
 #include "data/Database.h"
 #include "sys/Reporter.h"
 #include "sys/Exception.h"
@@ -119,7 +120,7 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
 
 int main (int argc, char** argv)
 {
-  typedef std::map<std::string, data::PatternSet*> map_type;
+  typedef std::map<std::string, data::RoIPatternSet*> map_type;
   sys::Reporter reporter("local");
   param_t par;
 
@@ -134,7 +135,7 @@ int main (int argc, char** argv)
 
   try {
 
-    data::Database db(par.input, reporter);
+    data::Database<data::RoIPatternSet> db(par.input, reporter);
     if (par.separate) {
       const map_type& data = db.data();
       for (map_type::const_iterator it=data.begin(); it!=data.end(); ++it) {

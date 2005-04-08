@@ -8,7 +8,9 @@
  * $Date$
  *
  * Arranges calorimetry cell data (roiformat dump) in concentric rings of
- * configurable size and center.
+ * configurable size and center and dump an XML file containing the ring'ified
+ * information for every RoI and their metadata (LVL1 and RoI identifiers and
+ * etaxphi information).
  */
 
 #include "rbuild/Config.h"
@@ -18,7 +20,7 @@
 #include "sys/Exception.h"
 #include "sys/debug.h"
 #include "sys/util.h"
-#include "data/PatternSet.h"
+#include "data/RoIPatternSet.h"
 #include "data/SumExtractor.h"
 #include "data/Database.h"
 #include <iostream>
@@ -239,7 +241,7 @@ int main (int argc, char** argv)
     typedef std::vector<const roiformat::RoI*> vec_type;
     vec_type rois;
     roidump.rois(rois); //get a handle to all RoI's available
-    data::PatternSet ringdb(roidump.size(), nrings);
+    data::RoIPatternSet ringdb(roidump.size(), nrings);
 
     //for all RoI's
     size_t i=0;
@@ -304,7 +306,7 @@ int main (int argc, char** argv)
 			<< " and RoI #" << (*it)->roi_id() << " because the"
 			" denominator is bellow the " 
 			<< ENERGY_THRESHOLD << " MeV threshold (value="
-			  << setenergy << ").");
+			<< setenergy << ").");
 	  }
 	  break;
 	case rbuild::RingConfig::SEQUENTIAL:
@@ -337,7 +339,7 @@ int main (int argc, char** argv)
 			<< " and RoI #" << (*it)->roi_id() << " because the"
 			" denominator is bellow the " 
 			<< ENERGY_THRESHOLD << " MeV threshold (value="
-			  << event << ").");
+			<< event << ").");
 	  }
 	  break;
 	case rbuild::RingConfig::SECTION:
@@ -385,7 +387,12 @@ int main (int argc, char** argv)
       } //for each RingSet (third iteration)
 
       //set new Pattern
-      ringdb.set_pattern(i, these_rings);
+      data::RoIPatternSet::RoIAttribute attr;
+      attr.lvl1_id = (*it)->lvl1_id();
+      attr.roi_id = (*it)->roi_id();
+      attr.eta = (*it)->eta();
+      attr.phi = (*it)->phi();
+      ringdb.set_pattern(i, these_rings, attr);
       ++i;
 
     } //for all RoI's
@@ -393,10 +400,10 @@ int main (int argc, char** argv)
     //prepare the database to dump
     std::string comment = "Originated from file ";
     comment += par.roidump;
-    data::Header h("Andre DOS ANJOS", bname, "1.0", time(0), comment);
-    std::map<std::string, data::PatternSet*> psmap;
+    data::Header h("Andre ANJOS", bname, "2.0", time(0), comment);
+    std::map<std::string, data::RoIPatternSet*> psmap;
     psmap[bname] = &ringdb;
-    data::Database db(&h, psmap, reporter);
+    data::Database<data::RoIPatternSet> db(&h, psmap, reporter);
     std::string outfilename = bname;
     outfilename += "-rings.xml";
     db.save(outfilename);

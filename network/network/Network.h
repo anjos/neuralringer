@@ -15,7 +15,7 @@
 #include <string>
 #include <map>
 
-#include "data/PatternSet.h"
+#include "data/SimplePatternSet.h"
 #include "config/Network.h"
 #include "network/Neuron.h"
 #include "network/InputNeuron.h"
@@ -96,8 +96,8 @@ namespace network {
      * @param input The PatternSet to run through the network
      * @param output The output of the network is placed at this PatternSet
      */
-    virtual void run (const data::PatternSet& input, 
-		      data::PatternSet& output);
+    virtual void run (const data::SimplePatternSet& input, 
+		      data::SimplePatternSet& output);
     
     /**
      * Trains the network with this Pattern.
@@ -115,8 +115,8 @@ namespace network {
      * @param target What is the network target for this supervisionised
      * training system.
      */
-    virtual void train (const data::PatternSet& data, 
-			const data::PatternSet& target);
+    virtual void train (const data::SimplePatternSet& data, 
+			const data::SimplePatternSet& target);
 
     /**
      * Trains the network with this PatternSet. The training data is chosen
@@ -130,8 +130,8 @@ namespace network {
      * @param epoch The epoch, number of patterns, with which the network
      * must be trained.
      */
-    virtual void train (const data::PatternSet& data,
-			const data::PatternSet& target,
+    virtual void train (const data::SimplePatternSet& data,
+			const data::SimplePatternSet& target,
 			unsigned int epoch);
 
     /**

@@ -13,9 +13,11 @@
 #include "roiformat/Cell.h"
 #include "sys/debug.h"
 #include "sys/Exception.h"
+#include <cmath>
 
-roiformat::Cell::Cell (Sampling sampling, const double& eta, const double& phi, 
-		       const double& r, const double& deta, const double& dphi,
+roiformat::Cell::Cell (Sampling sampling, const double& eta, 
+		       const double& phi, const double& r, 
+		       const double& deta, const double& dphi,
 		       const double& dr, const double& energy)
   : m_samp(sampling),
     m_eta(eta),
@@ -27,8 +29,8 @@ roiformat::Cell::Cell (Sampling sampling, const double& eta, const double& phi,
     m_energy(energy)
 {
   RINGER_DEBUG3("New cell (scratch) {" << m_samp << "," << m_eta << ","
-	      << m_phi << "," << m_r << "," << m_deta << "," << m_dphi
-	      << "," << m_dr << "," << m_energy << "}");
+		<< m_phi << "," << m_r << "," << m_deta << "," << m_dphi
+		<< "," << m_dr << "," << m_energy << "}");
 }
 
 sys::File& roiformat::Cell::operator<< (sys::File& f)
@@ -38,9 +40,12 @@ sys::File& roiformat::Cell::operator<< (sys::File& f)
   f >> sampling >> t >> m_eta >> t >> m_phi >> t >> m_r >> t >> m_deta 
     >> t >> m_dphi >> t >> m_dr >> t >> m_energy;
   m_samp = (roiformat::Cell::Sampling)sampling;
+  //correct for the cases where values of phi are between -PI and +PI instead
+  //of between 0 and 2*PI
+  if (m_phi < 0) m_phi += 2*M_PI;
   RINGER_DEBUG3("Cell read from File {" << m_samp << "," << m_eta << "," 
-	      << m_phi << "," << m_r << "," << m_deta << "," << m_dphi
-	      << "," << m_dr << "," << m_energy << "}");
+		<< m_phi << "," << m_r << "," << m_deta << "," << m_dphi
+		<< "," << m_dr << "," << m_energy << "}");
   return f;
 }
 

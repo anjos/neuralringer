@@ -239,8 +239,8 @@ void network::Network::run (const data::Pattern& input, data::Pattern& output)
   RINGER_DEBUG3("Ran 1 pattern through network.");
 }
 
-void network::Network::run (const data::PatternSet& input,
-			    data::PatternSet& output)
+void network::Network::run (const data::SimplePatternSet& input,
+			    data::SimplePatternSet& output)
 {
   RINGER_DEBUG3("Running " << input.size() << " pattern(s) through network.");
   unsigned int i=0;
@@ -264,7 +264,7 @@ void network::Network::run (const data::PatternSet& input,
 		<< ". Currently the output size is " << output.size() 
 		<< " and the pattern size is " << output.pattern_size() 
 		<< ".");
-    output = data::PatternSet(input.size(), m_output.size(), 0);
+    output = data::SimplePatternSet(input.size(), m_output.size(), 0);
   }
   for (std::vector<OutputNeuron*>::iterator it = m_output.begin();
        it != m_output.end(); ++it, ++i) {
@@ -293,30 +293,30 @@ void network::Network::train (const data::Pattern& data,
   RINGER_DEBUG3("Network trained.");
 }
 
-void network::Network::train (const data::PatternSet& data,
-			      const data::PatternSet& target)
+void network::Network::train (const data::SimplePatternSet& data,
+			      const data::SimplePatternSet& target)
 {
   RINGER_DEBUG3("(BATCH) Training network with " << data.size() << " Patterns");
-  data::PatternSet output(data.size(), m_output.size()); //empty
+  data::SimplePatternSet output(data.size(), m_output.size()); //empty
   run(data, output);
-  data::PatternSet error(target);
+  data::SimplePatternSet error(target);
   error -= output; // calculates the error for this iteration
   for (unsigned int j=0; j<m_output.size(); ++j)
     m_output[j]->train(error.ensemble(j));
   RINGER_DEBUG3("Network trained.");
 }
 
-void network::Network::train (const data::PatternSet& data,
-			      const data::PatternSet& target,
+void network::Network::train (const data::SimplePatternSet& data,
+			      const data::SimplePatternSet& target,
 			      unsigned int epoch)
 {
   RINGER_DEBUG3("(BATCH-RANDOM) Training network with " << epoch << " Patterns");
   std::vector<size_t> pats(epoch);
   static_rnd.draw(data.size(), pats); //get random positions
-  data::PatternSet input(data, pats); //get patterns for this iteration
-  data::PatternSet output(epoch, m_output.size()); //empty
+  data::SimplePatternSet input(data, pats); //get patterns for this iteration
+  data::SimplePatternSet output(epoch, m_output.size()); //empty
   run(input, output);
-  data::PatternSet error(target, pats);
+  data::SimplePatternSet error(target, pats);
   error -= output; // calculates the error for this iteration
   for (unsigned int j=0; j<m_output.size(); ++j)
     m_output[j]->train(error.ensemble(j));

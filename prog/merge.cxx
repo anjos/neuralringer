@@ -10,6 +10,7 @@
  * Merges a set of databases into a common XML file.
  */
 
+#include "data/RoIPatternSet.h"
 #include "data/Database.h"
 #include "sys/Reporter.h"
 #include "sys/debug.h"
@@ -136,7 +137,7 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
 int main (int argc, char** argv)
 {
   sys::Reporter reporter("local");
-  typedef std::map<std::string, data::PatternSet*> map_type;
+  typedef std::map<std::string, data::RoIPatternSet*> map_type;
   typedef std::map<std::string, std::string> cmap_type;
   param_t par;
 
@@ -159,7 +160,7 @@ int main (int argc, char** argv)
 	   it = par.classmap.begin(); it != par.classmap.end(); ++it) {
 
       //load new database
-      data::Database start_db(it->first, reporter);
+      data::Database<data::RoIPatternSet> start_db(it->first, reporter);
       RINGER_REPORT(reporter, "Putting data from file \"" << it->first 
 		    << "\" into class \"" << it->second << "\"...");
       std::vector<std::string> cnames;
@@ -183,7 +184,8 @@ int main (int argc, char** argv)
 	db_data.find(it->second)->second->merge(*start_db.data(cnames[0]));
       }
       else {
-	db_data[it->second] = new data::PatternSet(*start_db.data(cnames[0]));
+	db_data[it->second] = 
+	  new data::RoIPatternSet(*start_db.data(cnames[0]));
       }
       RINGER_REPORT(reporter, "File \"" << it->first << "\" processed.");
     }
@@ -191,7 +193,7 @@ int main (int argc, char** argv)
     //dump on a new file given by argv[1]
     data::Header h("Andre DOS ANJOS", "Merged database", "1.0",
 		   time(0), comment.str());
-    data::Database dump(&h, db_data, reporter);
+    data::Database<data::RoIPatternSet> dump(&h, db_data, reporter);
     RINGER_REPORT(reporter, "Dumping merged database into \"" << par.output
 		  << "\".");
     dump.save(par.output);

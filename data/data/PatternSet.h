@@ -3,15 +3,15 @@
 /**
  * @file data/PatternSet.h
  *
- * @brief Declares the PatternSet class.
+ * @brief Declares the PatternSet interface.
  */
 
 #ifndef DATA_PATTERNSET_H
 #define DATA_PATTERNSET_H
 
-#include <gsl/gsl_matrix.h>
 #include <libxml/tree.h>
 #include <iostream>
+#include <string>
 #include "data/Pattern.h"
 #include "data/PatternOperator.h"
 #include "data/Ensemble.h"
@@ -24,15 +24,15 @@ namespace data {
    * This class represents a set of data::Pattern's.
    *
    * A <b>data::Pattern set</b> is an entity that holds, virtually, any number
-   * of data::Pattern's. The set can be queried for special methods, allows
-   * random access with a reasonable speed and data::Pattern's to be inserted
-   * and removed from it. Some sort of normalisation strategies are also
-   * possible. A PatternSet can also be used to produce smaller <b>sets</b>
-   * that match a certain criteria. This class and related methods are
-   * strongly based on the GNU Scientific Library (GSL) vector/matrix/block
-   * objects. Please, refer to the GSL manual to understand better its
-   * limitations and virtudes (try at your shell <code>info gsl</code> or
-   * <code>info gsl-ref</code>).
+   * of data::Pattern's and attributes. The set can be queried for special
+   * methods, allows random access with a reasonable speed and data::Pattern's
+   * to be inserted and removed from it. Some sort of normalisation strategies
+   * are also possible. A PatternSet can also be used to produce smaller
+   * <b>sets</b> that match a certain criteria. This class and related methods
+   * are strongly based on the GNU Scientific Library (GSL)
+   * vector/matrix/block objects. Please, refer to the GSL manual to
+   * understand better its limitations and virtudes (try at your shell
+   * <code>info gsl</code> or <code>info gsl-ref</code>).
    *
    * While data::Pattern's represent each event available in a PatternSet, a
    * data::Ensemble represents a given Feature for every event in a
@@ -48,52 +48,6 @@ namespace data {
   public: //interface
 
     /**
-     * Creates an empty PatternSet with given sizes and an optional
-     * initialization value.
-     *
-     * @param size The number of Patterns inside of the PatternSet.
-     * @param p_size The size of each Pattern inside the PatternSet.
-     * @param init An optional initialization value
-     */
-    PatternSet(const size_t& size, const size_t& p_size, const double& init=0);
-
-    /** 
-     * Creates a PatternSet from another PatternSet. This is the copy
-     * constructor.
-     *
-     * @param other The PatternSet to be cloned.
-     */
-    PatternSet(const PatternSet& other);
-
-    /** 
-     * Reads a PatternSet from an XML file node
-     *
-     * @param node The root node where I'm in
-     */
-    PatternSet(const xmlNodePtr node);
-
-    /**
-     * Creates a PatternSet from another PatternSet, by selecting a set of
-     * patterns of interest. 
-     *
-     * @param other The PatternSet to copy data from
-     * @param pats The set of patterns to take from the original set.
-     */
-    PatternSet(const PatternSet& other, const std::vector<size_t>& pats);
-
-    /**
-     * Creates a PatternSet from a set of Patterns, litterally
-     *
-     * @param pats The set of patterns to use for building this set.
-     */
-    PatternSet(const std::vector<Pattern*>& pats);
-
-    /**
-     * The default destructor.
-     */
-    virtual ~PatternSet();
-
-    /**
      * This method sets a specific data::Pattern inside the set to a new
      * value, also given as parameter. The new data::Pattern is checked for
      * size compatibility with the old one. If both have the same size, the
@@ -104,7 +58,7 @@ namespace data {
      * <code>0</code>.
      * @param pat The new value of the data::Pattern
      */
-    void set_pattern (const size_t& pos, const Pattern& pat);
+    virtual void set_pattern (const size_t& pos, const Pattern& pat) = 0;
 
     /**
      * This method sets a specific data::Ensemble inside the set to a new
@@ -117,7 +71,7 @@ namespace data {
      * <code>0</code>.
      * @param ens The new value of the data::Ensemble
      */
-    void set_ensemble (const size_t& pos, const Ensemble& ens);
+    virtual void set_ensemble (const size_t& pos, const Ensemble& ens) = 0;
 
     /**
      * This method deletes a data::Pattern from the set. It's an error to call
@@ -128,7 +82,7 @@ namespace data {
      * @param pos The relative position inside the set, starting from
      * <code>0</code>
      */
-    void erase_pattern (const size_t& pos);
+    virtual void erase_pattern (const size_t& pos) = 0;
 
     /**
      * This method deletes a data::Ensemble from the set. It's an error to
@@ -139,45 +93,35 @@ namespace data {
      * @param pos The relative position inside the set, starting from
      * <code>0</code>
      */
-    void erase_ensemble (const size_t& pos);
+    virtual void erase_ensemble (const size_t& pos) = 0;
 
     /**
      * This method returns the set size, i.e., the number of data::Pattern's
      * it contains.
      */
-    size_t size () const;
+    virtual size_t size () const = 0;
 
     /**
      * Returns the current size of each Pattern on the set.
      */
-    size_t pattern_size () const;
-
-    /** 
-     * Merges two distinct PatternSet's.
-     *
-     * This method will copy the given PatternSet Pattern's into the current
-     * set, enlarging it. We check if the Pattern sizes are the same previous
-     * to the copying. This method returns a reference to the current set
-     * being manipulated.
-     *
-     * @param other The PatternSet to be copied
-     */
-    PatternSet& merge (const PatternSet& other);
+    virtual size_t pattern_size () const = 0;
 
     /**
-     * Sets this PatternSet starting from another PatternSet, by selecting a
-     * set of patterns of interest.
+     * Makes a copy of this PatternSet in dynamic memory
+     */
+    virtual PatternSet* clone (void) const = 0;
+
+    /**
+     * Makes a selective copy of this PatternSet in dynamic memory
      *
-     * @param other The PatternSet to copy data from
      * @param pats The set of patterns to take from the original set.
      */
-    PatternSet& assign(const PatternSet& other, 
-		       const std::vector<size_t>& pats);
+    virtual PatternSet* clone (const std::vector<size_t>& pats) const = 0;
 
     /**
      * Shuffles the order of data inside this PatternSet.
      */
-    void shuffle (void);
+    virtual void shuffle (void) = 0;
 
     /**
      * This method returns a constant reference of the data::Pattern required,
@@ -188,7 +132,7 @@ namespace data {
      * @param pos The relative position inside the set, starting from 
      * <code>0</code>
      */
-    const Pattern pattern (const size_t& pos) const;
+    virtual const Pattern pattern (const size_t& pos) const = 0;
 
     /**
      * This method returns a constant reference of the data::Ensemble
@@ -200,21 +144,7 @@ namespace data {
      * @param pos The relative position inside the set, starting from 
      * <code>0</code>
      */
-    const Ensemble ensemble (const size_t& pos) const;
-
-    /**
-     * This method defines how to copy a PatternSet.
-     *
-     * @param other The PatternSet to be copied.
-     */
-    PatternSet& operator= (const PatternSet& other);
-
-    /**
-     * Subtracts, from this PatternSet, the value given
-     *
-     * @param other The PatternSet to be used in the operation.
-     */
-    PatternSet& operator-= (const PatternSet& other);
+    virtual const Ensemble ensemble (const size_t& pos) const = 0;
 
     /**
      * Dumps the set as a set of XML nodes
@@ -223,26 +153,37 @@ namespace data {
      * @param start_id The initial number to take in consideration when
      * writing the entry identifiers.
      */
-    xmlNodePtr dump (const std::string& cname,
-		     const size_t start_id=0) const;
+    virtual xmlNodePtr dump (const std::string& cname,
+			     const size_t start_id=0) const = 0;
 
     /**
      * Applies the given PatternOperator to all my Pattern's.
      * 
      * @param op The operator to apply
      */
-    void apply_pattern_op (const data::PatternOperator& op);
+    virtual void apply_pattern_op (const data::PatternOperator& op) = 0;
 
     /**
      * Applies the given PatternOperator to all my Ensemble's.
      * 
      * @param op The operator to apply
      */
-    void apply_ensemble_op (const data::PatternOperator& op);
+    virtual void apply_ensemble_op (const data::PatternOperator& op) = 0;
 
-  private: //representation
-    gsl_matrix* m_data; ///< my internal data
-    
+    /**
+     * Dumps a pattern set with a nice representation on a ostream
+     *
+     * @param os The output stream to use
+     */
+    virtual std::ostream& stream_out (std::ostream& os) const = 0;
+	
+    /**
+     * Dumps a pattern set with a nice representation on a ostream
+     *
+     * @param f The output stream to use
+     */
+    virtual sys::File& stream_out (sys::File& f) const = 0;
+
   };
   
 }
@@ -253,14 +194,16 @@ namespace data {
  * @param os The output stream to use
  * @param p The set to dump
  */
-std::ostream& operator<< (std::ostream& os, const data::PatternSet& p);
+inline std::ostream& operator<< (std::ostream& os, const data::PatternSet& p)
+{ return p.stream_out(os); }
 
 /**
  * Dumps a pattern set with a nice representation on a ostream
  *
- * @param os The output stream to use
+ * @param f The output sys::File to use
  * @param p The set to dump
  */
-sys::File& operator<< (sys::File& os, const data::PatternSet& p);
+inline sys::File& operator<< (sys::File& f, const data::PatternSet& p)
+{ return p.stream_out(f); }
 
 #endif //DATA_PATTERNSET_H

@@ -1,11 +1,12 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file net-run.cxx
+ * @file mlp-run.cxx
  *
  * Runs one or more databases through a neural network.
  */
 
+#include "data/RoIPatternSet.h"
 #include "data/Database.h"
 #include "data/RemoveDBMeanOperator.h"
 #include "data/util.h"
@@ -144,7 +145,7 @@ int main (int argc, char** argv)
   }
 
   //loads the DB
-  data::Database db(par.db, reporter);
+  data::Database<data::RoIPatternSet> db(par.db, reporter);
 
   //loads the Network
   RINGER_REPORT(reporter, "Loading network \"" << par.net << "\"...");
@@ -154,18 +155,19 @@ int main (int argc, char** argv)
     RINGER_REPORT(reporter, "Normalizing Database \"" << par.db << "\"...");
     data::RemoveDBMeanOperator rmmean(db);
     db.apply_pattern_op(rmmean);
-    std::map<std::string, data::PatternSet*> outdb_data;
+    std::map<std::string, data::RoIPatternSet*> outdb_data;
     std::vector<std::string> input_class_names;
     db.class_names(input_class_names);
     for (std::vector<std::string>::const_iterator it = 
 	   input_class_names.begin(); it != input_class_names.end(); ++it) {
       RINGER_REPORT(reporter, "Processing DB class \"" << *it << "\"...");
-      data::PatternSet* output = new data::PatternSet(db.data(*it)->size(), 
-						      net.output_size());
-      net.run(*db.data(*it), *output);
+      data::SimplePatternSet output(db.data(*it)->size(), net.output_size());
+      net.run(db.data(*it)->simple(), output);
+      data::RoIPatternSet* roi_output = 
+	new data::RoIPatternSet(output, db.data(*it)->attributes());
       std::ostringstream oss;
       oss << *it << "-output";
-      outdb_data[oss.str()] = output;
+      outdb_data[oss.str()] = roi_output;
       RINGER_REPORT(reporter, "DB class \"" << *it 
 		    << "\" output was saved was \"" << oss.str() << "\".");
     }
@@ -173,7 +175,8 @@ int main (int argc, char** argv)
     comment << "Outputs from " << par.db << " ran through " << par.net;
     data::Header header("Andre DOS ANJOS", par.output, "1.0", time(0),
 			comment.str());
-    data::Database output_db(&header, outdb_data, reporter);
+    data::Database<data::RoIPatternSet> 
+      output_db(&header, outdb_data, reporter);
     output_db.save(par.output);
     RINGER_REPORT(reporter, "All network outputs were saved to \"" 
 		  << par.output << "\".");

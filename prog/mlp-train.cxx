@@ -8,6 +8,7 @@
  * the patterns in that database.
  */
 
+#include "data/RoIPatternSet.h"
 #include "data/Database.h"
 #include "data/MinExtractor.h"
 #include "data/MaxExtractor.h"
@@ -330,7 +331,7 @@ int main (int argc, char** argv)
   }
 
   //loads the DB
-  data::Database db(par.db, reporter);
+  data::Database<data::RoIPatternSet> db(par.db, reporter);
   
   //checks db size
   if (db.size() < 2) {
@@ -349,7 +350,8 @@ int main (int argc, char** argv)
   //schema for each class (2 classes -> 1 output)
   std::vector<size_t> hlayer(1, par.nhidden);
   config::NeuronStrategyType nstrat = config::NEURON_BACKPROP;
-  config::NeuronBackProp::ActivationFunction actfun = config::NeuronBackProp::TANH;
+  config::NeuronBackProp::ActivationFunction actfun = 
+    config::NeuronBackProp::TANH;
   config::Parameter* nsparam = new config::NeuronBackProp(actfun);
   config::SynapseStrategyType sstrat = config::SYNAPSE_BACKPROP;
   config::Parameter* ssparam =
@@ -362,8 +364,8 @@ int main (int argc, char** argv)
 		   sstrat, ssparam, reporter);
 
   //split the data base in train and test
-  data::Database* traindb;
-  data::Database* testdb;
+  data::Database<data::RoIPatternSet>* traindb;
+  data::Database<data::RoIPatternSet>* testdb;
   std::vector<std::string> cnames;
   db.class_names(cnames);
   data::RemoveDBMeanOperator rmmean(db);
@@ -372,28 +374,29 @@ int main (int argc, char** argv)
   RINGER_DEBUG1("Train set size is " << traindb->size());
   RINGER_DEBUG1("Test set size is " << testdb->size());
 
-  data::Database traindb2(*traindb); //save original train database
+  data::Database<data::RoIPatternSet> 
+    traindb2(*traindb); //save original train database
   traindb->normalise();
-  data::PatternSet train(1, 1);
+  data::RoIPatternSet train(1, 1);
   traindb->merge(train);
   RINGER_REPORT(reporter, "Normalised train set size is " << train.size());
-  data::PatternSet train2(1, 1);
+  data::RoIPatternSet train2(1, 1);
   traindb2.merge(train2);
   RINGER_REPORT(reporter, "Original train set size is " << train2.size());
   RINGER_DEBUG1("Train set size is " << train.size());
-  data::PatternSet target(1, 1);
+  data::RoIPatternSet target(1, 1);
   traindb->merge_target(par.compress, -1, +1, target);
   RINGER_REPORT(reporter, "Normalised train target set size is " 
 		<< target.size());
-  data::PatternSet target2(1, 1);
+  data::RoIPatternSet target2(1, 1);
   traindb2.merge_target(par.compress, -1, +1, target2);
   RINGER_REPORT(reporter, "Original train target set size is "
 		<< target2.size());
   RINGER_DEBUG1("Train target set size is " << target.size());
-  data::PatternSet test(1, 1);
+  data::RoIPatternSet test(1, 1);
   testdb->merge(test);
   RINGER_DEBUG1("Test set size is " << test.size());
-  data::PatternSet test_target(1, 1);
+  data::RoIPatternSet test_target(1, 1);
   testdb->merge_target(par.compress, -1, +1, test_target);
   RINGER_DEBUG1("Test target set size is " << test_target.size());
   
@@ -402,7 +405,7 @@ int main (int argc, char** argv)
     mseevo << "epoch test-mse train-mse" << "\n";
     sys::File spevo(par.spevo, std::ios_base::trunc|std::ios_base::out);
     spevo << "epoch test-sp train-sp" << "\n";
-    data::PatternSet output(target2);
+    data::SimplePatternSet output(target2.simple());
     config::Header net_header("Andre DOS ANJOS", par.output, "1.0", time(0),
 			      "Start set");
     net.save(par.startnet, &net_header);
@@ -416,7 +419,7 @@ int main (int argc, char** argv)
     size_t i = 0;
     double best_val = val;
     while (stopnow) {
-      net.train(train, target, par.epoch);
+      net.train(train.simple(), target.simple(), par.epoch);
       --par.hardstop;
       if (!par.hardstop) {
 	RINGER_REPORT(reporter, "Hard-stop limit has been reached. Stopping"
@@ -429,12 +432,12 @@ int main (int argc, char** argv)
 	double eff1, eff2, thres;
 	{
 	  //test set analysis
-	  output = test_target;
-	  net.run(test, output);
+	  output = test_target.simple();
+	  net.run(test.simple(), output);
 	  double sp_val;
 	  if (db.size() == 2)
 	    sp_val = data::sp(output, test_target, eff1, eff2, thres);
-	  double mse_val = data::mse(output, test_target);
+	  double mse_val = data::mse(output, test_target.simple());
 	  mseevo << i << " " << mse_val;
 	  spevo << i << " " << sp_val;
 	  prev = val;
@@ -465,11 +468,11 @@ int main (int argc, char** argv)
 	}
 	{
 	  //train set analysis
-	  net.run(train2, output);
+	  net.run(train2.simple(), output);
 	  double sp_val;
 	  if (db.size() == 2) 
 	    sp_val = data::sp(output, target2, eff1, eff2, thres);
-	  double mse_val = data::mse(output, target2);
+	  double mse_val = data::mse(output, target2.simple());
 	  mseevo << " " << mse_val << "\n";
 	  spevo << " " << sp_val << "\n";
 	}
@@ -498,17 +501,20 @@ int main (int argc, char** argv)
     
     //reload the best network saved so far.
     network::Network bestnet(par.endnet, reporter);
-    data::PatternSet train_output(target2);
-    bestnet.run(train2, train_output);
+    data::SimplePatternSet simple_train_output(target2.simple());
+    bestnet.run(train2.simple(), simple_train_output);
+    data::RoIPatternSet train_output(simple_train_output, train2.attributes());
     double mse_train = data::mse(train_output, target2);
     double sp_train = 0;
     double train_eff1 = 0;
     double train_eff2 = 0;
     double train_thres = 0;
-    if (db.size() == 2) sp_train = data::sp(train_output, target2,
-				      train_eff1, train_eff2, train_thres);
-    data::PatternSet test_output(target);
-    bestnet.run(test, test_output);
+    if (db.size() == 2) 
+      sp_train = data::sp(train_output, target2,train_eff1, train_eff2, 
+			  train_thres);
+    data::SimplePatternSet simple_test_output(target.simple());
+    bestnet.run(test.simple(), simple_test_output);
+    data::RoIPatternSet test_output(simple_test_output, test.attributes());
     double mse_test = data::mse(test_output, test_target);
     double sp_test = 0;
     double test_eff1 = 0;
@@ -516,7 +522,7 @@ int main (int argc, char** argv)
     double test_thres = 0;
     if (db.size() == 2) sp_test = data::sp(test_output, test_target,
 					   test_eff1, test_eff2, test_thres);
-    std::map<std::string, data::PatternSet*> data;
+    std::map<std::string, data::RoIPatternSet*> data;
     data["train-output"] = &train_output;
     data["train-target"] = &target2;
     data["test-output"] = &test_output;
@@ -530,7 +536,7 @@ int main (int argc, char** argv)
     comment << ".";
     data::Header header("Andre DOS ANJOS", par.output, "1.0", time(0),
 			comment.str());
-    data::Database output_db(&header, data, reporter);
+    data::Database<data::RoIPatternSet> output_db(&header, data, reporter);
     output_db.save(par.output);
     RINGER_REPORT(reporter, "Network output saved to \"" << par.output
 		  << "\".");

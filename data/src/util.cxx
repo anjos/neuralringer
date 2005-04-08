@@ -48,14 +48,8 @@ data::Feature data::abs_mean (const data::PatternSet& p)
   return retval;
 }
 
-double data::mse (const data::PatternSet& output, const data::PatternSet& target)
-{
-  data::PatternSet error(target);
-  error -= output;
-  return data::mean_square(error);
-}
-
-double data::sp (const data::PatternSet& output, const data::PatternSet& target,
+double data::sp (const data::PatternSet& output, 
+		 const data::PatternSet& target,
 		 double& eff1, double& eff2, double& thres)
 {
   const double SCAN_STEP = 0.001; //1 per thousand of the target delta

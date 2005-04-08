@@ -30,7 +30,7 @@ namespace data {
      * @param out The Pattern to output
      */
     virtual void operator() (const data::Pattern& in,
-			     data::Pattern& out) const;
+							 data::Pattern& out) const;
 
   };
 

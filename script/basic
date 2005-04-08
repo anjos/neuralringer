@@ -39,8 +39,8 @@ for rc in $*; do
     R CMD BATCH $RINGER/script/topdf.R
     echo "[$0] Convert the PDF's into PNG's";
     for pdf in `\ls ring-*.pdf`; do
-	convert $pdf `basename $pdf .pdf`.png
-	rm -f $pdf;
+    	convert $pdf `basename $pdf .pdf`.png
+    	rm -f $pdf;
     done
     echo "[$0] Compress the PNG's in ZIP file";
     zip -m "all-rois-merged.zip" *.png;

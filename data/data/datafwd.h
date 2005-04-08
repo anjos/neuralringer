@@ -22,6 +22,7 @@ namespace data {
   class Pattern;
   typedef Pattern Ensemble;
   class PatternSet;
+  class RoIPatternSet;
   class FeatureHandler;
   class Formatter;
   class RandomInteger;

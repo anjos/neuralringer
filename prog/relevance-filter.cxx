@@ -11,6 +11,7 @@
  * removing their less relevant ensembles and saving a new database.
  */
 
+#include "data/RoIPatternSet.h"
 #include "data/Database.h"
 #include "sys/Reporter.h"
 #include "sys/Exception.h"
@@ -212,7 +213,7 @@ int main (int argc, char** argv)
     }
        
     //loads the DB
-    data::Database db(par.db, reporter);
+    data::Database<data::RoIPatternSet> db(par.db, reporter);
     
     if (db.data("electron")->pattern_size() != relevance.size()) {
       RINGER_FATAL(reporter, "The number of relevance entries in " 
@@ -230,11 +231,11 @@ int main (int argc, char** argv)
 	   it = relevance.rbegin(); it != relevance.rend(); ++it) {
       RINGER_REPORT(reporter, "Processing ensemble `" << it->first
 		    << "'.");
-      const std::map<std::string, data::PatternSet*>& data = db.data();
+      const std::map<std::string, data::RoIPatternSet*>& data = db.data();
       //@warning: this is a hack
-      std::map<std::string, data::PatternSet*>* change = 
-	const_cast<std::map<std::string, data::PatternSet*>*>(&data);
-      for (std::map<std::string, data::PatternSet*>::iterator
+      std::map<std::string, data::RoIPatternSet*>* change = 
+	const_cast<std::map<std::string, data::RoIPatternSet*>*>(&data);
+      for (std::map<std::string, data::RoIPatternSet*>::iterator
 	     jt = change->begin(); jt != change->end(); ++jt) {
 	if (it->second < par.thres && !par.reverse) { //cut
 	  RINGER_DEBUG1("Removing ensemble `" << it->first << "'.");

@@ -24,29 +24,18 @@
    <xsd:sequence>
 
     <!-- HEADER -->
-    <xsd:element name="header">
-     <xsd:complexType>
-      <xsd:sequence>
-       <xsd:element name="author" type="xsd:string"/>
-       <xsd:element name="name"  type="xsd:string"/>
-       <xsd:element name="version"  type="xsd:string"/>
-       <xsd:element name="created" type="xsd:dateTime"/>
-       <xsd:element name="lastSaved" type="xsd:dateTime"/>
-       <xsd:element name="comment" minOccurs="0" type="xsd:string"/>
-      </xsd:sequence>
-     </xsd:complexType>
-    </xsd:element>
+    <xsd:element name="header" type="HeaderType" minOccurs="1" maxOccurs="1"/>
 
     <!-- DATA -->
     <xsd:element name="data">
      <xsd:complexType>
       <xsd:sequence>
        <xsd:element name="class" type="ClassType"
-        minOccurs="1" maxOccurs="unbounded"/>
+        minOccurs="0" maxOccurs="unbounded"/>
       </xsd:sequence>
      </xsd:complexType>
     </xsd:element>
-	
+
    </xsd:sequence>
 
    <!-- DATABASE ATTRIBUTES -->
@@ -54,6 +43,7 @@
     <xsd:simpleType>
      <xsd:restriction base="xsd:string">
       <xsd:enumeration value="0.1"/>
+      <xsd:enumeration value="0.2"/>
      </xsd:restriction>
     </xsd:simpleType>
    </xsd:attribute>
@@ -66,6 +56,17 @@
 <!-- ######################## -->
 <!-- # DEFINITIONS OF TYPES # -->
 <!-- ######################## -->
+
+<xsd:complexType name="HeaderType">
+ <xsd:sequence>
+  <xsd:element name="author" type="xsd:string"/>
+  <xsd:element name="name"  type="xsd:string"/>
+  <xsd:element name="version"  type="xsd:string"/>
+  <xsd:element name="created" type="xsd:dateTime"/>
+  <xsd:element name="lastSaved" type="xsd:dateTime"/>
+  <xsd:element name="comment" minOccurs="0" type="xsd:string"/>
+ </xsd:sequence>
+</xsd:complexType>
 
 <!-- ENTRY CLASS -->
 <!-- There is no provision for ensuring the input/target lists of all
@@ -83,12 +84,29 @@
  <xsd:attribute name="id" type="xsd:nonNegativeInteger" use="optional"/>
 </xsd:complexType>
 
+<!-- ENTRY WITH ROI DATA CLASS -->
+<xsd:complexType name="RoIEntryType">
+  <xsd:complexContent>
+    <xsd:extension base="EntryType">
+      <xsd:attribute name="filename" type="xsd:string" use="optional"/>
+      <xsd:attribute name="lvl1_id" type="xsd:nonNegativeInteger" 
+       use="required"/>
+      <xsd:attribute name="roi_id" type="xsd:nonNegativeInteger" 
+       use="required"/>
+      <xsd:attribute name="eta" type="xsd:double" use="required"/>
+      <xsd:attribute name="phi" type="xsd:double" use="required"/>
+    </xsd:extension>
+  </xsd:complexContent>
+</xsd:complexType>
+
 <!-- CLASS CLASS :) -->
 <xsd:complexType name="ClassType">
- <xsd:sequence>
+ <xsd:choice>
   <xsd:element name="entry" type="EntryType" minOccurs="1"
    maxOccurs="unbounded"/>
- </xsd:sequence>
+  <xsd:element name="roientry" type="RoIEntryType" minOccurs="1"
+   maxOccurs="unbounded"/>
+ </xsd:choice>
  <xsd:attribute name="name" type="xsd:string" use="required"/>
 </xsd:complexType>
 

@@ -64,7 +64,8 @@ namespace data {
    * @param output The output of the network
    * @param target The target of the network
    */
-  double mse (const data::PatternSet& output, const data::PatternSet& target);
+  template <class TSet>
+  double mse (const TSet& output, const TSet& target);
 
   /**
    * Returns the maximum value of the SP product for the given output and
@@ -88,6 +89,14 @@ namespace data {
   double sp (const data::PatternSet& output, const data::PatternSet& target,
 	     double& eff1, double& eff2, double& thres);
   
+}
+
+template <class TSet>
+double data::mse (const TSet& output, const TSet& target)
+{
+  TSet error(target);
+  error -= output;
+  return data::mean_square(error);
 }
 
 #endif /* DATA_UTIL_H */

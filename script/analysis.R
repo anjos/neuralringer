@@ -8,30 +8,6 @@ my.mse <- function (out, target) {
   return (sum((out-target)^2)/length(out));
 }
 
-# Splits a vector according to the proportion given by `perc'
-# and returns either the start of `data' based on that
-# percentage. Merging the output of this with the output of
-# get.end() produces the initial set.
-# data: The data to split
-# perc: The percentage of data to take
-get.start <- function (data, perc) {
-  n <- floor(length(data)*perc);
-  return (data[1:n]);
-}
-
-# Splits a vector according to the proportion given by `perc'
-# and returns either the end of `data' based on that
-# percentage. Merging the output of this with the output of
-# get.start() produces the initial set.
-# data: The data to split
-# perc: The percentage of data to take
-get.end <- function (data, perc) {
-  n <- floor(length(data)*perc);
-  n <- length(data) - n;
-  if (length(data)%%2 == 0) n <- n+1;
-  return (data[n:length(data)]);
-}
-
 # Plots histograms of counts for electrons and jets in different
 # detector locations
 # target: The network target (defines what is electron and what is jet)
@@ -42,6 +18,7 @@ hist.location <- function (target, set, var, location) {
   mn <- min(location);
   mx <- max(location);
   step <- 0.1;
+  if ( var == "phi" ) step <- (mx - mn) / 32;
   e = c();
   j = c();
   for ( i in seq(from=mn, to=mx, by=step) ) {
@@ -132,7 +109,6 @@ roc <- function(o, t, set, draw=TRUE) {
     fal <- length(jet[jet<i])/length(jet);
     fal.jet <- c(fal.jet, fal);
     temp.sp <- (eff + (1-fal)) * (eff * (1-fal));
-    if (is.nan(temp.sp)) temp.sp <- 0;
     if (temp.sp > sp) {
       sp = temp.sp;
       sp.eff.elec = eff;
@@ -229,47 +205,36 @@ par(mfcol=c(1,1));
 
 trainout <-
   read.table(paste(outfile, "train-output.txt", sep=""), header=FALSE);
-trainout = as.vector(trainout[,1]);
 testout <-
   read.table(paste(outfile, "test-output.txt", sep=""), header=FALSE);
-testout = as.vector(testout[,1]);
 traintarget <-
   read.table(paste(outfile, "train-target.txt", sep=""), header=FALSE);
-traintarget = as.vector(traintarget[,1]);
 testtarget <-
   read.table(paste(outfile, "test-target.txt", sep=""), header=FALSE);
-testtarget = as.vector(testtarget[,1]);
 
-my.hist(testout, testtarget, "test");
-my.hist(trainout, traintarget, "train");
-roc(testout, testtarget, "test");
-roc(trainout, traintarget, "train");
+my.hist(as.vector(testout[,5]), as.vector(testtarget[,5]), "test");
+my.hist(as.vector(trainout[,5]), as.vector(traintarget[,5]), "train");
+roc(as.vector(testout[,5]), as.vector(testtarget[,5]), "test");
+roc(as.vector(trainout[,5]), as.vector(traintarget[,5]), "train");
 
 # Analysis per eta/phi slot
-loc <- read.table("../electron-location.txt");
-e.eta.loc <- as.vector(loc[,1]);
-e.phi.loc <- as.vector(loc[,2]);
-loc <- read.table("../jet-location.txt");
-j.eta.loc <- as.vector(loc[,1]);
-j.phi.loc <- as.vector(loc[,2]);
-train.eta.loc <- get.end(e.eta.loc, 0.5);
-train.eta.loc <- c(train.eta.loc, get.end(j.eta.loc, 0.5));
-test.eta.loc <- get.start(e.eta.loc, 0.5);
-test.eta.loc <- c(test.eta.loc, get.start(j.eta.loc, 0.5));
-train.phi.loc <- get.end(e.phi.loc, 0.5);
-train.phi.loc <- c(train.phi.loc, get.end(j.phi.loc, 0.5));
-test.phi.loc <- get.start(e.phi.loc, 0.5);
-test.phi.loc <- c(test.phi.loc, get.start(j.phi.loc, 0.5));
-# make histograms of counts per location
-hist.location(testtarget, "test", "eta", test.eta.loc);
-hist.location(testtarget, "test", "phi", test.phi.loc);
-hist.location(traintarget, "train", "eta", train.eta.loc);
-hist.location(traintarget, "train", "phi", train.phi.loc);
+hist.location(as.vector(testtarget[,5]), "test", "eta", 
+              as.vector(testout[,3]));
+hist.location(as.vector(testtarget[,5]), "test", "phi", 
+              as.vector(testout[,4]));
+hist.location(as.vector(traintarget[,5]), "train", "eta", 
+              as.vector(trainout[,3]));
+hist.location(as.vector(traintarget[,5]), "train", "phi", 
+              as.vector(trainout[,4]));
 # do the analysis it self
-scan.analysis(testout, testtarget, "test", "eta", test.eta.loc);
-scan.analysis(testout, testtarget, "test", "phi", test.phi.loc);
-scan.analysis(trainout, traintarget, "train", "eta", train.eta.loc);
-scan.analysis(trainout, traintarget, "train", "phi", train.phi.loc);
+scan.analysis(as.vector(testout[,5]), as.vector(testtarget[,5]), "test", "eta",
+              as.vector(testout[,3]));
+scan.analysis(as.vector(testout[,5]), as.vector(testtarget[,5]), "test", "phi",
+              as.vector(testout[,4]));
+scan.analysis(as.vector(trainout[,5]), as.vector(traintarget[,5]), 
+              "train", "eta", as.vector(trainout[,3]));
+scan.analysis(as.vector(trainout[,5]), as.vector(traintarget[,5]), 
+              "train", "phi", as.vector(trainout[,4]));
 
 # do the relevance analysis
 relev <- read.table(paste(prefix, ".end.relevance.txt", sep=""),

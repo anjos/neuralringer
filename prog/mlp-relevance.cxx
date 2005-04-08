@@ -7,6 +7,7 @@
  * relevance for each variable, dividing the data in train and test.
  */
 
+#include "data/SimplePatternSet.h"
 #include "data/Database.h"
 #include "data/RemoveDBMeanOperator.h"
 #include "data/util.h"
@@ -155,7 +156,7 @@ int main (int argc, char** argv)
   }
 
   //loads the DB
-  data::Database db(par.db, reporter);
+  data::Database<data::SimplePatternSet> db(par.db, reporter);
 
   //loads the network
   network::Network net(par.net, reporter);
@@ -163,8 +164,8 @@ int main (int argc, char** argv)
   if (net.output_size() < db.size()) compressed_output = true;
   
   //split the data base in train and test
-  data::Database* traindb;
-  data::Database* testdb;
+  data::Database<data::SimplePatternSet>* traindb;
+  data::Database<data::SimplePatternSet>* testdb;
   std::vector<std::string> cnames;
   db.class_names(cnames);
   data::RemoveDBMeanOperator rmmean(db);
@@ -172,29 +173,29 @@ int main (int argc, char** argv)
   db.split(par.trainperc, traindb, testdb);
   RINGER_DEBUG1("Train DB size is " << traindb->size());
   RINGER_DEBUG1("Test DB size is " << testdb->size());
-  data::PatternSet train(1, 1);
+  data::SimplePatternSet train(1, 1);
   traindb->merge(train);
   RINGER_DEBUG1("Train set size is " << train.size());
-  data::PatternSet train_target(1, 1);
+  data::SimplePatternSet train_target(1, 1);
   traindb->merge_target(compressed_output, -1, +1, train_target);
-  data::PatternSet test(1, 1);
+  data::SimplePatternSet test(1, 1);
   testdb->merge(test);
   RINGER_DEBUG1("Test set size is " << test.size());
-  data::PatternSet test_target(1, 1);
+  data::SimplePatternSet test_target(1, 1);
   testdb->merge_target(compressed_output, -1, +1, test_target);
 
   try {
     sys::File out(par.out, std::ios_base::trunc|std::ios_base::out);
-    data::PatternSet test_output(test_target);
-    data::PatternSet train_output(train_target);
+    data::SimplePatternSet test_output(test_target);
+    data::SimplePatternSet train_output(train_target);
     out << "input test.relevance train.relevance\n";
     //test set analysis
     net.run(test, test_output);
     net.run(train, train_output);
-    data::PatternSet test_copy(test);
-    data::PatternSet train_copy(train);
-    data::PatternSet test_copy_output(test_target);
-    data::PatternSet train_copy_output(train_target);
+    data::SimplePatternSet test_copy(test);
+    data::SimplePatternSet train_copy(train);
+    data::SimplePatternSet test_copy_output(test_target);
+    data::SimplePatternSet train_copy_output(train_target);
     data::Ensemble test_mean(test.size());
     data::Ensemble train_mean(train.size());
     for (size_t i = 0; i < test.pattern_size(); ++i) {

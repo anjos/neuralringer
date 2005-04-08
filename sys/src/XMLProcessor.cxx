@@ -85,18 +85,19 @@ xmlSchemaPtr load_schema (const std::string& uri, sys::Reporter& reporter)
  * @param reporter The reporter to report errors and fatal conditions
  */
 void validate (xmlSchemaPtr schema, xmlDocPtr xml_doc,
-	       sys::Reporter& reporter)
+			   sys::Reporter& reporter)
 {
   xmlSchemaValidCtxtPtr schema_ctxt = xmlSchemaNewValidCtxt(schema);
   if (!schema_ctxt) {
     xmlSchemaFreeValidCtxt(schema_ctxt);
-    RINGER_WARN(reporter, "I cannot create a schema context. Exception thrown.");
+    RINGER_WARN(reporter, 
+				"I cannot create a schema context. Exception thrown.");
     throw RINGER_EXCEPTION("Cannot create schema context");
   }
   xmlSchemaSetValidErrors(schema_ctxt,
-			  (xmlSchemaValidityErrorFunc) fprintf,
-			  (xmlSchemaValidityWarningFunc) fprintf,
-			  stderr);
+						  (xmlSchemaValidityErrorFunc) fprintf,
+						  (xmlSchemaValidityWarningFunc) fprintf,
+						  stderr);
   int ret = xmlSchemaValidateDoc(schema_ctxt, xml_doc);
   xmlSchemaFreeValidCtxt(schema_ctxt);
   if (ret < 0) {
@@ -117,12 +118,12 @@ void validate (xmlSchemaPtr schema, xmlDocPtr xml_doc,
  * @param reporter The reporter to report errors and fatal conditions
  */
 xmlDocPtr load (xmlSchemaPtr schema, const std::string& filename,
-		sys::Reporter& reporter)
+				sys::Reporter& reporter)
 {
   xmlDocPtr xml_doc = xmlParseFile(filename.c_str());
   if (!xml_doc) {
     RINGER_WARN(reporter, "Could not parse file \"" << filename << "\"."
-	      << " Exception thrown.");
+				<< " Exception thrown.");
     throw RINGER_EXCEPTION("Cannot parse file");
   }
   try {
@@ -131,7 +132,7 @@ xmlDocPtr load (xmlSchemaPtr schema, const std::string& filename,
   catch (const sys::Exception& ex) {
     xmlFreeDoc(xml_doc);
     RINGER_WARN(reporter, "Validation of \"" << filename 
-	      << "\" failed. Exception thrown.");
+				<< "\" failed. Exception thrown.");
     RINGER_EXCEPT(reporter, ex.what());
     return 0;
   }
@@ -139,7 +140,7 @@ xmlDocPtr load (xmlSchemaPtr schema, const std::string& filename,
 }
 
 sys::XMLProcessor::XMLProcessor (const std::string& schema,
-				    sys::Reporter& reporter)
+								 sys::Reporter& reporter)
   : m_schema(schema),
     m_schema_ptr(0),
     m_current(0),

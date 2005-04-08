@@ -24,7 +24,7 @@
  */
 namespace data {
 
-  class PatternSet; ///< forward
+  class SimplePatternSet; ///< forward
   class PatternOperator; ///< forward
   class FeatureExtractor; ///< forward
   
@@ -103,7 +103,7 @@ namespace data {
      *
      * @param other The Pattern to be copied.  
      */
-    Pattern& operator= (const Pattern& other);
+    virtual Pattern& operator= (const Pattern& other);
 
     /**
      * Assigns a constant value to each of the Pattern Feature's. 
@@ -286,11 +286,14 @@ namespace data {
      */
     void append (const Pattern& other);
 
-  private: //only a PatternSet can use this
+  protected: //only a PatternSet and inherited classes can use this
 
     /**
      * Builds a Pattern out of a vector view. This is used to refer, for
      * instance to a matrix or a PatternSet.
+     *
+     * @warning This is not very clean and should be removed as soon as
+     * another idea pops up or upon a redesign
      *
      * @param vector_view The vector view to use as construction parameter
      */
@@ -299,7 +302,7 @@ namespace data {
     /**
      * My private friend
      */
-    friend class data::PatternSet;
+    friend class data::SimplePatternSet;
 
   private:
     gsl_vector_view m_view; ///< an optional view that might be set
