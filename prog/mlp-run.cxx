@@ -8,7 +8,6 @@
 
 #include "data/RoIPatternSet.h"
 #include "data/Database.h"
-#include "data/RemoveDBMeanOperator.h"
 #include "data/util.h"
 #include "network/MLP.h"
 #include "sys/Reporter.h"
@@ -152,9 +151,6 @@ int main (int argc, char** argv)
   network::Network net(par.net, reporter);
   
   try {
-    RINGER_REPORT(reporter, "Normalizing Database \"" << par.db << "\"...");
-    data::RemoveDBMeanOperator rmmean(db);
-    db.apply_pattern_op(rmmean);
     std::map<std::string, data::RoIPatternSet*> outdb_data;
     std::vector<std::string> input_class_names;
     db.class_names(input_class_names);
