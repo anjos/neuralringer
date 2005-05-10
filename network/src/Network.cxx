@@ -296,7 +296,8 @@ void network::Network::train (const data::Pattern& data,
 void network::Network::train (const data::SimplePatternSet& data,
 			      const data::SimplePatternSet& target)
 {
-  RINGER_DEBUG3("(BATCH) Training network with " << data.size() << " Patterns");
+  RINGER_DEBUG3("(BATCH) Training network with " 
+		<< data.size() << " Patterns");
   data::SimplePatternSet output(data.size(), m_output.size()); //empty
   run(data, output);
   data::SimplePatternSet error(target);
@@ -310,12 +311,13 @@ void network::Network::train (const data::SimplePatternSet& data,
 			      const data::SimplePatternSet& target,
 			      unsigned int epoch)
 {
-  RINGER_DEBUG3("(BATCH-RANDOM) Training network with " << epoch << " Patterns");
+  RINGER_DEBUG3("(BATCH-RANDOM) Training network with " 
+		<< epoch << " Patterns");
   std::vector<size_t> pats(epoch);
   static_rnd.draw(data.size(), pats); //get random positions
   data::SimplePatternSet input(data, pats); //get patterns for this iteration
   data::SimplePatternSet output(epoch, m_output.size()); //empty
-  run(input, output);
+  run(input, output); //set network state
   data::SimplePatternSet error(target, pats);
   error -= output; // calculates the error for this iteration
   for (unsigned int j=0; j<m_output.size(); ++j)

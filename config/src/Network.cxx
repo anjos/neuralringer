@@ -112,7 +112,7 @@ bool config::Network::save (const std::string& filename)
   schema += "/network.xsd";
   sys::XMLProcessor xmlproc(schema, m_reporter);
   xmlNodePtr root = xmlproc.new_document("network");
-  sys::put_attribute_text(root, "version", "0.2");
+  sys::put_attribute_text(root, "version", "0.3");
   xmlAddChild(root, m_header->node());
   xmlNodePtr layout = sys::put_element(root, "layout");
   for (std::vector<Neuron*>::iterator it = m_neuron.begin(); 

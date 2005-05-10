@@ -13,7 +13,7 @@
 
 network::BiasNeuron::BiasNeuron (const data::Feature& bias,
 				 const unsigned int* id)
-  : InputNeuron(id),
+  : InputNeuron(0, 1, id),
     m_bias(bias),
     m_state(1, bias)
 {

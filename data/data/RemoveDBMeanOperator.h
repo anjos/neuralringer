@@ -21,7 +21,8 @@ namespace data {
   public:
 
     /**
-     * Constructor. To remove the mean of ensembles in a DB, I have to compute
+     * Constructor. To remove the mean and variance of ensembles in a DB, I
+     * have to compute 
      * first the mean for all classes in a DB.
      *
      * @param db The database to extract the ensemble mean from

@@ -45,7 +45,7 @@
     <xsd:element name="layout">
      <xsd:complexType>
       <xsd:choice maxOccurs="unbounded">
-       <xsd:element name="input" type="NeuronType"
+       <xsd:element name="input" type="InputNeuronType"
         minOccurs="1" maxOccurs="unbounded"/>
        <xsd:element name="bias" type="BiasNeuronType"
         minOccurs="0" maxOccurs="unbounded"/>
@@ -65,7 +65,7 @@
    <xsd:attribute name="version" use="required">
     <xsd:simpleType>
      <xsd:restriction base="xsd:string">
-      <xsd:enumeration value="0.2"/>
+      <xsd:enumeration value="0.3"/>
      </xsd:restriction>
     </xsd:simpleType>
    </xsd:attribute>
@@ -82,6 +82,13 @@
 <!-- BASE NEURON CLASS -->
 <xsd:complexType name="NeuronType">
  <xsd:attribute name="id" type="xsd:nonNegativeInteger" use="required"/>
+</xsd:complexType>
+
+<!-- INPUT NEURON CLASS -->
+<xsd:complexType name="InputNeuronType">
+ <xsd:attribute name="id" type="xsd:nonNegativeInteger" use="required"/>
+ <xsd:attribute name="subtract" type="xsd:double" use="optional" default="0.0"/>
+ <xsd:attribute name="divide" type="xsd:double" use="optional" default="1.0"/>
 </xsd:complexType>
 
 <!-- BIAS NEURON CLASS -->

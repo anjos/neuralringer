@@ -34,9 +34,12 @@ namespace network {
     /**
      * Builds a new input neuron.
      *
+     * @param subtract The subtraction factor to apply at input
+     * @param divide The division factor to apply at input
      * @param id The optional identifier to this neuron.
      */
-    InputNeuron (const unsigned int* id=0);
+    InputNeuron (const double& subtract=0.0, const double& divide=1.0,
+		 const unsigned int* id=0);
 
     /**
      * Builds a new output neuron from a configuration.
@@ -128,6 +131,8 @@ namespace network {
   private: ///representation
     std::vector<Synapse*> m_osynapse; ///< The output Synapse's
     data::Ensemble m_state; ///< The current state of the Neuron
+    data::Feature m_subtract; ///< The subtraction factor to apply at input
+    data::Feature m_divide; ///< The division factor to apply at input
   };
 
 }

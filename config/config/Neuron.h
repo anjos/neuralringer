@@ -30,10 +30,17 @@ namespace config {
 
     /**
      * Builds a neuron from scratch
+     *
+     * @param id The unique identifier a neuron has to have
+     * @param type The neuron type
+     * @param strategy The strategy to use for this neuron
+     * @param params The parameters for the neuron
+     * @param bias The optional bias to insert into the neuron
      */
     Neuron (unsigned int id, const config::NeuronType& type,
 	    const config::NeuronStrategyType* strategy=0,
-	    const config::Parameter* params=0, const double& bias=0);
+	    const config::Parameter* params=0, const double& bias=0.0,
+	    const double& subtract=0.0, const double& divide=1.0);
 
     /**
      * Builds a neuron configuration from another neuron
@@ -63,6 +70,8 @@ namespace config {
     inline config::NeuronStrategyType strategy() const 
     { return m_strategy; }
     inline double bias () const { return m_bias; }
+    inline double subtract () const { return m_subtract; }
+    inline double divide () const { return m_divide; }
     inline const config::Parameter* parameters() const { return m_params; }
 
   private: //representation
@@ -71,6 +80,8 @@ namespace config {
     config::NeuronStrategyType m_strategy; ///< the activation function
     config::Parameter* m_params; ///< my strategy parameters
     double m_bias; ///< if I'm a bias neuron, I get this set
+    double m_subtract; ///< if I'm an input neuron, I get this set
+    double m_divide; ///< if I'm an input neuron, I get this set
 
   };
 

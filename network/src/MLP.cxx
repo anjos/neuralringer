@@ -42,6 +42,8 @@ network::MLP::MLP (const size_t input,
 		   const config::Parameter* neu_params,
 		   const config::SynapseStrategyType& syn_strat_type,
 		   const config::Parameter* syn_params,
+		   const data::Pattern& input_subtract,
+		   const data::Pattern& input_divide,
 		   sys::Reporter& reporter)
   : network::Network(reporter)
 {
@@ -51,9 +53,16 @@ network::MLP::MLP (const size_t input,
   std::vector<network::Neuron*> neurons; //all neurons, unorganized
   std::vector<network::Neuron*> current; //current layer being operated
 
+  //check the input normalization factor sizes
+  if (input_subtract.size() != input)
+    throw RINGER_EXCEPTION("Input subtraction factor and input size differ.");
+  if (input_divide.size() != input)
+    throw RINGER_EXCEPTION("Input division factor and input size differ.");
+
   //create input neurons
   for (size_t i=0; i<input; ++i) {
-    network::Neuron* n = new network::InputNeuron;
+    network::Neuron* n = 
+      new network::InputNeuron(input_subtract[i], input_divide[i]);
     neurons.push_back(n);
     current.push_back(n);
   }
@@ -117,6 +126,8 @@ network::MLP::MLP (const size_t input,
 		   const config::Parameter* outneu_params,
 		   const config::SynapseStrategyType& syn_strat_type,
 		   const config::Parameter* syn_params,
+		   const data::Pattern& input_subtract,
+		   const data::Pattern& input_divide,
 		   sys::Reporter& reporter)
   : network::Network(reporter)
 {
@@ -127,7 +138,8 @@ network::MLP::MLP (const size_t input,
 
   //create input neurons
   for (size_t i=0; i<input; ++i) {
-    network::Neuron* n = new network::InputNeuron;
+    network::Neuron* n = 
+      new network::InputNeuron(input_subtract[i], input_divide[i]);
     neurons.push_back(n);
     current.push_back(n);
   }

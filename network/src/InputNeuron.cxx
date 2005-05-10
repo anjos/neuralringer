@@ -13,17 +13,23 @@
 #include "sys/Exception.h"
 #include "sys/debug.h"
 
-network::InputNeuron::InputNeuron (const unsigned int* id)
+network::InputNeuron::InputNeuron (const double& subtract,
+				   const double& divide,
+				   const unsigned int* id)
   : network::Neuron(id),
     m_osynapse(0),
-    m_state(1, 0)
+    m_state(1, 0),
+    m_subtract(subtract),
+    m_divide(divide)
 {
 }
 
 network::InputNeuron::InputNeuron (const config::Neuron& config)
   : network::Neuron(config),
     m_osynapse(0),
-    m_state(1, 0)
+    m_state(1, 0),
+    m_subtract(config.subtract()),
+    m_divide(config.divide())
 {
 }
 
@@ -47,11 +53,18 @@ void network::InputNeuron::run (const data::Ensemble& data)
   }
 #endif
   m_state = data;
+  //apply normalization factors
+  m_state -= m_subtract;
+  m_state /= m_divide;
+  RINGER_DEBUG1("Applying normalization if input `(x-" << m_subtract
+		<< "')/" << m_divide << " at InputNeuron[" << id() << "]...");
+  //run
   RINGER_DEBUG2("InputNeuron[" << id() << "] in/output = " << m_state);
   for (std::vector<Synapse*>::iterator it= m_osynapse.begin();
        it != m_osynapse.end(); ++it) {
-    RINGER_DEBUG2("InputNeuron[" << id() << "] feeds forward signal to Synapse["
-		<< (*it)->id() << "]");
+    RINGER_DEBUG2("InputNeuron[" << id()
+		  << "] feeds forward signal to Synapse["
+		  << (*it)->id() << "]");
     (*it)->pass(m_state);
   }
 }
@@ -104,7 +117,7 @@ network::Neuron& network::InputNeuron::out_disconnect (network::Synapse* l)
 
 config::Neuron network::InputNeuron::dump (void) const
 {
-  return config::Neuron(id(), config::INPUT);
+  return config::Neuron(id(), config::INPUT, 0, 0, 0, m_subtract, m_divide);
 }
 
 bool network::InputNeuron::dot(std::ostream& os) const

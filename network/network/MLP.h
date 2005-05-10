@@ -44,6 +44,13 @@ namespace network {
      * @param syn_params The global synapse strategy parameters to apply for
      * this network
      *
+     * @param subtract an optional vector that contains "input" entries, one
+     * for each input. This is the subtraction factor to apply for every input
+     * the network receives.
+     * @param divide an optional vector that contains "input" entries, one
+     * for each input. This is the division factor to apply for every input
+     * the network receives.
+     *
      * @param reporter The reporter to inform about changes or errors.
      */
     MLP (const size_t input,
@@ -53,6 +60,8 @@ namespace network {
 	 const config::Parameter* neu_params,
 	 const config::SynapseStrategyType& syn_strat_type,
 	 const config::Parameter* syn_params,
+	 const data::Pattern& input_subtract,
+	 const data::Pattern& input_divide,
 	 sys::Reporter& reporter);
 
     /**
@@ -82,6 +91,13 @@ namespace network {
      * @param syn_params The global synapse strategy parameters to apply for
      * this network
      *
+     * @param subtract an optional vector that contains "input" entries, one
+     * for each input. This is the subtraction factor to apply for every input
+     * the network receives.
+     * @param divide an optional vector that contains "input" entries, one
+     * for each input. This is the division factor to apply for every input
+     * the network receives.
+     *
      * @param reporter The reporter to inform about changes or errors.
      */
     MLP (const size_t input,
@@ -94,6 +110,8 @@ namespace network {
 	 const config::Parameter* outneu_params,
 	 const config::SynapseStrategyType& syn_strat_type,
 	 const config::Parameter* syn_params,
+	 const data::Pattern& input_subtract,
+	 const data::Pattern& input_divide,
 	 sys::Reporter& reporter);
 
     /**

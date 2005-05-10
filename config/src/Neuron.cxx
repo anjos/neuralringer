@@ -13,7 +13,10 @@
 #include "sys/Exception.h"
 
 config::Neuron::Neuron(const xmlNodePtr node)
-  : m_params(0)
+  : m_params(0),
+    m_bias(0),
+    m_subtract(0),
+    m_divide(1)
 {
   xmlNodePtr it = node;
   std::string type = sys::get_element_name(it);
@@ -30,8 +33,14 @@ config::Neuron::Neuron(const xmlNodePtr node)
   m_id = sys::get_attribute_uint(node, "id");
 
   //Read bias attribute
-  if (m_type == config::BIAS) 
+  if (m_type == config::BIAS)
     m_bias = sys::get_attribute_double(node, "bias");
+
+  //If input type, read subtract and divide normalization factors
+  if (m_type == config::INPUT) {
+    m_subtract = sys::get_attribute_double(node, "subtract");
+    m_divide = sys::get_attribute_double(node, "divide");
+  }
 
   if (m_type == config::HIDDEN || m_type == config::OUTPUT) {
     xmlNodePtr c = node->children; //parameters...
@@ -51,12 +60,15 @@ config::Neuron::Neuron(const xmlNodePtr node)
 
 config::Neuron::Neuron (unsigned int id, const config::NeuronType& type,
 			const config::NeuronStrategyType* strategy,
-			const config::Parameter* params, const double& bias)
+			const config::Parameter* params, const double& bias,
+			const double& subtract, const double& divide)
   : m_id(id),
     m_type(type),
     m_strategy(),
     m_params(),
-    m_bias(bias)
+    m_bias(bias),
+    m_subtract(subtract),
+    m_divide(divide)
 {
   if (m_type == config::HIDDEN || m_type == config::OUTPUT) {
     if (!strategy || !params) {
@@ -74,7 +86,9 @@ config::Neuron::Neuron(const Neuron& other)
     m_type(other.m_type),
     m_strategy(other.m_strategy),
     m_params(0),
-    m_bias(other.m_bias)
+    m_bias(other.m_bias),
+    m_subtract(other.m_subtract),
+    m_divide(other.m_divide)
 {
   if (m_type == config::HIDDEN || m_type == config::OUTPUT)
     m_params = other.m_params->clone();
@@ -88,6 +102,8 @@ config::Neuron& config::Neuron::operator= (const Neuron& other)
   if (m_type == config::HIDDEN || m_type == config::OUTPUT)
     m_params = other.m_params->clone();
   m_bias = other.m_bias;
+  m_subtract = other.m_subtract;
+  m_divide = other.m_divide;
   return *this;
 }
 
@@ -103,6 +119,8 @@ xmlNodePtr config::Neuron::node ()
   case config::INPUT:
     root = sys::make_node("input");
     sys::put_attribute_uint(root, "id", m_id);
+    sys::put_attribute_double(root, "subtract", m_subtract);
+    sys::put_attribute_double(root, "divide", m_divide);
     break;
   case config::BIAS:
     root = sys::make_node("bias");
