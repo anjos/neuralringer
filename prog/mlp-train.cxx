@@ -10,9 +10,7 @@
 
 #include "data/RoIPatternSet.h"
 #include "data/Database.h"
-#include "data/MinExtractor.h"
-#include "data/MaxExtractor.h"
-#include "data/RemoveDBMeanOperator.h"
+#include "data/NormalizationOperator.h"
 #include "data/util.h"
 #include "network/MLP.h"
 #include "sys/Reporter.h"
@@ -176,7 +174,7 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
       break;
     case 'b': //hardstop
       RINGER_DEBUG1("I'll hardstop the training after " << hardstop
-		    << "epochs, if nothing happens before");
+		    << " epochs, if nothing happens before");
       break;
     case 'c': //epoch
       RINGER_DEBUG1("Training epoch is " << epoch);
@@ -332,6 +330,16 @@ int main (int argc, char** argv)
 
   //loads the DB
   data::Database<data::RoIPatternSet> db(par.db, reporter);
+  //splits the database in train and test
+  data::Database<data::RoIPatternSet>* traindb;
+  data::Database<data::RoIPatternSet>* testdb;
+  std::vector<std::string> cnames;
+  db.class_names(cnames);
+  db.split(par.trainperc, traindb, testdb);
+  //calculate the normalization factor based on the train set only
+  data::NormalizationOperator norm_op(*traindb);
+  RINGER_DEBUG1("Train set size is " << traindb->size());
+  RINGER_DEBUG1("Test set size is " << testdb->size());
   
   //checks db size
   if (db.size() < 2) {
@@ -361,19 +369,10 @@ int main (int argc, char** argv)
   if (par.compress) nout = lrint(std::ceil(log2(db.size())));
   network::MLP net(db.pattern_size(), hlayer, nout,
 		   biaslayer, nstrat, nsparam, nstrat, nsparam,
-		   sstrat, ssparam, reporter);
+		   sstrat, ssparam, norm_op.mean(), norm_op.stddev(), 
+		   reporter);
 
-  //split the data base in train and test
-  data::Database<data::RoIPatternSet>* traindb;
-  data::Database<data::RoIPatternSet>* testdb;
-  std::vector<std::string> cnames;
-  db.class_names(cnames);
-  data::RemoveDBMeanOperator rmmean(db);
-  db.apply_pattern_op(rmmean);
-  db.split(par.trainperc, traindb, testdb);
-  RINGER_DEBUG1("Train set size is " << traindb->size());
-  RINGER_DEBUG1("Test set size is " << testdb->size());
-
+  //tune input DB's for size/randomness
   data::Database<data::RoIPatternSet> 
     traindb2(*traindb); //save original train database
   traindb->normalise();
@@ -386,7 +385,7 @@ int main (int argc, char** argv)
   RINGER_DEBUG1("Train set size is " << train.size());
   data::RoIPatternSet target(1, 1);
   traindb->merge_target(par.compress, -1, +1, target);
-  RINGER_REPORT(reporter, "Normalised train target set size is " 
+  RINGER_REPORT(reporter, "Normalized train target set size is " 
 		<< target.size());
   data::RoIPatternSet target2(1, 1);
   traindb2.merge_target(par.compress, -1, +1, target2);
