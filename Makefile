@@ -15,7 +15,7 @@ all: build progs
 build:
 	$(foreach dir, $(PROJECT_DIR), $(MAKE) -C $(dir) install;)
 
-progs: ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run
+progs: ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run
 
 ringer: prog/ringer.o
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
@@ -49,6 +49,9 @@ relevance-filter: prog/relevance-filter.o
 
 xml2dot: prog/xml2dot.o
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) $< -o$(INSTALL_BIN)/$@
+
+ringer-run: prog/ringer-run.o
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
 
 doc:
 	@doxygen
