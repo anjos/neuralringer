@@ -70,7 +70,7 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
     { "net", 'n', POPT_ARG_STRING, &net, 'n',
       "where to read the network", "path: no default" },
     { "output", 'o', POPT_ARG_STRING, &output, 'o',
-      "where to write the output of the last network", 
+      "where to write the output of the MLP neural-network", 
       "path: default is db-name.out.xml" },
     POPT_AUTOHELP
     { 0, 0, 0, 0, 0 }
@@ -114,15 +114,18 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
   if (!db) {
     RINGER_DEBUG1("I cannot work without a database file. Exception thrown.");
     throw RINGER_EXCEPTION("No database file specified");
-  } else p.db = db;
+  } 
+  p.db = db;
   if (!net) {
     RINGER_DEBUG1("I cannot work without a network file. Exception thrown.");
     throw RINGER_EXCEPTION("No network file specified");
-  } else p.net = net;
+  } 
+  p.net = net;
   if (!output) {
     p.output = stripname(p.db) + ".out.xml";
     RINGER_DEBUG1("Setting output file name to " << p.output);
-  } else p.output = output;
+  } 
+  else p.output = output;
   poptFreeContext(optCon);
 
   RINGER_DEBUG1("Command line options have been read.");
