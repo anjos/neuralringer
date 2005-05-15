@@ -27,6 +27,7 @@
 #include <popt.h>
 #include <cstdio>
 #include <cmath>
+#include <ctime>
 
 /**
  * Defines the energy threshold for divisions, in MeV's
@@ -140,8 +141,7 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
  *
  * @param rings The calculated ring values one wishes to normalise
  * @param stop_energy The threshold to judge when to stop this normalisation
- * strategy
- * and start using the total layer energy instead, in MeV.
+ * strategy and start using the total layer energy instead, in MeV.
  */
 void sequential (data::Pattern& rings, const data::Feature& stop_energy=100.0)
 {
@@ -196,13 +196,197 @@ void sequential (data::Pattern& rings, const data::Feature& stop_energy=100.0)
   rings /= norm;
 }
 
+/**
+ * Calculates the center of interation based on the second e.m. layer
+ * information or return false, indicating a center could not be found.
+ *
+ * @param reporter A system-wide reporter to use
+ * @param roi The RoI to study
+ * @param eta The eta value calibrated to the center
+ * @param phi The phi value calibrated to the center
+ *
+ * @return <code>true</code> if everything goes Ok, or <code>false</code>
+ * otherwise.
+ */
+bool find_center(sys::Reporter& reporter,
+		 const roiformat::RoI* roi, double& eta, double& phi)
+{
+  std::vector<const roiformat::Cell*> cells;
+  roi->cells(roiformat::Cell::EMBARREL2, cells);
+  roi->cells(roiformat::Cell::EMENDCAP2, cells);
+  if (!cells.size()) {
+    RINGER_REPORT(reporter,
+		  "I couldn't find any cells for layer e.m. second layer" 
+		  << " in RoI" << " with L1Id #" << roi->lvl1_id() 
+		  << " and RoI #" << roi->roi_id());
+    return false;
+  }
+  RINGER_DEBUG2("I've found " << cells.size() << " at e.m. second layer...");
+  roiformat::max(cells, eta, phi);
+  RINGER_DEBUG2("The maximum happens at eta=" << eta << " and phi=" << phi);
+  return true;
+}
+
+/**
+ * Calculates based on the RoI input and on the center previously calculated.
+ *
+ * @param reporter A system-wide reporter to use
+ * @param roi The RoI dump to use as starting point
+ * @param rset The ring set configuration to use for creating the rings
+ * @param own_center If this value is set to <code>false</code> a layer based
+ * center is calculated for the ring center. Otherwise, the values given on
+ * the following variables are considered.
+ * @param eta The center to consider when building the rings
+ * @param phi The center to consider when building the rings
+ */
+void build_rings(sys::Reporter& reporter,
+		 const roiformat::RoI* roi,
+		 std::vector<rbuild::RingSet>& rset, bool own_center,
+		 const double& eta, const double& phi)
+{
+  //for each RingSet (calculate primary ring values, w/o normalization)
+  for (std::vector<rbuild::RingSet>::iterator 
+	 jt=rset.begin(); jt!=rset.end(); ++jt) {
+    jt->reset(); //reset this ringset
+    const std::vector<roiformat::Cell::Sampling>& dets = 
+      jt->config().detectors();
+    //for all detectors in a given RingSet
+    std::vector<const roiformat::Cell*> cells;
+    for (std::vector<roiformat::Cell::Sampling>::const_iterator 
+	   kt=dets.begin(); kt!=dets.end(); ++kt) {
+      //get all cells for that RoI, that are from detectors I'm interested
+      roi->cells(*kt, cells);
+    } //for relevant detectors
+
+    if (!cells.size()) {
+      RINGER_REPORT(reporter, "I couldn't find any cells for ring set \""
+		    << jt->config().name() << "\" in RoI"
+		    << " with L1Id #" << roi->lvl1_id() 
+		    << " and RoI #" << roi->roi_id());
+      continue;
+    }
+    RINGER_DEBUG2("I've found " << cells.size() << " cells for ring set"
+		  << " \"" << jt->config().name() << "\"...");
+
+    //add the ring values for those cells, based on the center given or
+    //calculate its own center.
+    if (own_center) {
+      double my_eta, my_phi;
+      roiformat::max(cells, my_eta, my_phi);
+      jt->add(cells, my_eta, my_phi);
+    }
+    else jt->add(cells, eta, phi);
+
+  } //for each RingSet
+}
+
+/**
+ * Apply normalization based on the ring set configuration
+ *
+ * @param reporter A system-wide reporter to use
+ * @param rset The ring set configuration to use for creating the rings
+ */
+void normalize_rings(sys::Reporter& reporter,
+		     std::vector<rbuild::RingSet>& rset)
+{
+  //at this point, I have all ring sets, separated
+  double emsection = 0; // energy at e.m. section
+  double hadsection = 0; // energy at hadronic section
+
+  //for each RingSet (first iteration) -- apply set dependent norms.
+  for (std::vector<rbuild::RingSet>::iterator 
+	 jt=rset.begin(); jt!=rset.end(); ++jt) {
+    //calculate the relevant energies
+    double setenergy = 0;
+    for (size_t i=0; i<jt->pattern().size(); ++i) 
+      setenergy += jt->pattern()[i];
+    if (jt->config().section() == rbuild::RingConfig::EM) 
+      emsection += setenergy;
+    else hadsection += setenergy;
+
+    //what is the normalisation strategy here? Can I do something already?
+    switch(jt->config().normalisation()) {
+    case rbuild::RingConfig::SET:
+      if (setenergy > ENERGY_THRESHOLD)
+	jt->pattern() /= fabs(setenergy);
+      else {
+	RINGER_WARN(reporter, "Ignoring normalisation command \""
+		    << norm2str(jt->config().normalisation())
+		    << "\" for RingSet \"" << jt->config().name() 
+		    << " because the denominator is bellow the " 
+		    << ENERGY_THRESHOLD << " MeV threshold (value="
+		    << setenergy << ").");
+      }
+      break;
+    case rbuild::RingConfig::SEQUENTIAL:
+      sequential(jt->pattern());
+      break;
+    default: //do nothing
+      break;
+    }
+    RINGER_DEBUG1("Set energy for \"" << jt->config().name() << "\" = "
+		  << setenergy);
+  } //for each RingSet (first iteration)
+
+  double event = emsection + hadsection; // event energy
+  RINGER_DEBUG1("Event energy = " << event);
+  RINGER_DEBUG1("E.m. energy = " << emsection);
+  RINGER_DEBUG1("Hadronic energy = " << hadsection);
+
+  //for each RingSet (third iteration) -- now accumulate and store
+  for (std::vector<rbuild::RingSet>::iterator
+	 jt=rset.begin(); jt!=rset.end(); ++jt) {
+    //what is the normalisation strategy here? Do the rest of options
+    switch(jt->config().normalisation()) {
+    case rbuild::RingConfig::EVENT:
+      if (event > ENERGY_THRESHOLD) jt->pattern() /= fabs(event);
+      else {
+	RINGER_WARN(reporter, "Ignoring normalisation command \""
+		    << norm2str(jt->config().normalisation())
+		    << "\" for RingSet \"" << jt->config().name() 
+		    << " because the denominator is bellow the " 
+		    << ENERGY_THRESHOLD << " MeV threshold (value="
+		    << event << ").");
+      }
+      break;
+    case rbuild::RingConfig::SECTION:
+      if (jt->config().section() == rbuild::RingConfig::EM) {
+	if (emsection > ENERGY_THRESHOLD) 
+	  jt->pattern() /= fabs(emsection);
+	else {
+	  RINGER_WARN(reporter, "Ignoring normalisation command \""
+		      << norm2str(jt->config().normalisation())
+		      << "\" for RingSet \"" << jt->config().name() 
+		      << " because the denominator is bellow the "
+		      << ENERGY_THRESHOLD << " MeV threshold (value="
+		      << emsection << ").");
+	}
+      }
+      else {
+	if (hadsection > ENERGY_THRESHOLD) jt->pattern() /= fabs(hadsection);
+	else {
+	  RINGER_WARN(reporter, "Ignoring normalisation command \""
+		      << norm2str(jt->config().normalisation())
+		      << "\" for RingSet \"" << jt->config().name() 
+		      << " because the denominator is bellow the "
+		      << ENERGY_THRESHOLD << " MeV threshold (value="
+		      << hadsection << ").");
+	}
+      }
+      break;
+    default: //do nothing
+      break;
+    }
+  }
+}
+
 int main (int argc, char** argv)
 {
   sys::Reporter reporter("local");
   param_t par;
 
   try {
-    if (!checkopt(argc, argv, par, reporter)) 
+    if (!checkopt(argc, argv, par, reporter))
       RINGER_FATAL(reporter, "Terminating execution.");
   }
   catch (sys::Exception& ex) {
@@ -222,163 +406,41 @@ int main (int argc, char** argv)
 		  << "\".");
     //then config
     rbuild::Config config(par.ringconfig, reporter);
-    RINGER_REPORT(reporter, "Loaded Ring configuration at \"" 
+    RINGER_REPORT(reporter, "Loaded Ring configuration at \""
 		  << par.ringconfig << "\".");
     //do the processing:
     //1. For each configured ring set, create a *real* RingSet
-    typedef std::vector<rbuild::RingSet> rset_type;
-    rset_type rset;
-    typedef std::map<unsigned int, rbuild::RingConfig> map_type;
-    const map_type& rconfig = config.config();
+    std::vector<rbuild::RingSet> rset;
+    const std::map<unsigned int, rbuild::RingConfig>& rconfig = 
+      config.config();
     unsigned int nrings = 0;
-    for (map_type::const_iterator it=rconfig.begin(); 
-	 it!=rconfig.end(); ++it) {
+    for (std::map<unsigned int, rbuild::RingConfig>::const_iterator 
+	   it=rconfig.begin(); it!=rconfig.end(); ++it) {
       rset.push_back(it->second);
       nrings += it->second.max();
     } //creates, obligatorily, ordered ring sets
 
     //2. Pass the relevant cells through the relevant RingSet(s).
-    typedef std::vector<const roiformat::RoI*> vec_type;
-    vec_type rois;
+    std::vector<const roiformat::RoI*> rois;
     roidump.rois(rois); //get a handle to all RoI's available
     data::RoIPatternSet ringdb(roidump.size(), nrings);
 
-    //for all RoI's
     size_t i=0;
-    for (vec_type::const_iterator it=rois.begin(); it!=rois.end(); ++it) {
+    for (std::vector<const roiformat::RoI*>::const_iterator
+	   it=rois.begin(); it!=rois.end(); ++it) {
       RINGER_REPORT(reporter, "Calculating rings for RoI -> L1Id #"
 		    << (*it)->lvl1_id() << " and RoI #" << (*it)->roi_id());
+      double eta, phi; //center values
+      bool ok = find_center(reporter, *it, eta, phi);
+      build_rings(reporter, *it, rset, ok, eta, phi);
+      normalize_rings(reporter, rset);
 
-      //for each RingSet (calculate primary ring values)
-      for (rset_type::iterator jt=rset.begin(); jt!=rset.end(); ++jt) {
-	jt->reset(); //reset this ringset
-
-	typedef std::vector<roiformat::Cell::Sampling> vdet_type;
-	const vdet_type& dets = jt->config().detectors();
-	//for all detectors in a given RingSet
-	typedef std::vector<const roiformat::Cell*> vcell_type;
-	vcell_type cells;
-	for (vdet_type::const_iterator kt=dets.begin(); kt!=dets.end(); ++kt) {
-	  //get all cells for that RoI, that are from detectors I'm interested
-	  (*it)->cells(*kt, cells);
-	} //for relevant detectors
-
-	if (!cells.size()) {
-	  RINGER_REPORT(reporter, "I couldn't find any cells for ring set \""
-			<< jt->config().name() << "\" in RoI"
-			<< " with L1Id #" << (*it)->lvl1_id() 
-			<< " and RoI #" << (*it)->roi_id());
-	  continue;
-	}
-	RINGER_DEBUG2("I've found " << cells.size() << " cells for ring set"
-		      << " \"" << jt->config().name() << "\"...");
-	double eta, phi; //center values
-	roiformat::max(cells, eta, phi);
-	RINGER_DEBUG2("The maximum happens at eta=" << eta
-		      << " and phi=" << phi);
-	//add the ring values for those cells
-	jt->add(cells, eta, phi);
-      } //for each RingSet
-
-      //at this point, I have all ring sets, separated
-      double emsection = 0; // energy at e.m. section
-      double hadsection = 0; // energy at hadronic section
-      //for each RingSet (second iteration) -- apply set dependent norms.
-      for (rset_type::iterator jt=rset.begin(); jt!=rset.end(); ++jt) {
-	//calculate the relevant energies
-	double setenergy = 0;
-	for (size_t i=0; i<jt->pattern().size(); ++i) 
-	  setenergy += jt->pattern()[i];
-	if (jt->config().section() == rbuild::RingConfig::EM) 
-	  emsection += setenergy;
-	else hadsection += setenergy;
-
-	//what is the normalisation strategy here? Can I do something already?
-	switch(jt->config().normalisation()) {
-	case rbuild::RingConfig::SET:
-	  if (setenergy > ENERGY_THRESHOLD)
-	    jt->pattern() /= fabs(setenergy);
-	  else {
-	    RINGER_WARN(reporter, "Ignoring normalisation command \""
-			<< norm2str(jt->config().normalisation())
-			<< "\" for RingSet \"" << jt->config().name() 
-			<< "\" and RoI" << " with L1Id #" << (*it)->lvl1_id()
-			<< " and RoI #" << (*it)->roi_id() << " because the"
-			" denominator is bellow the " 
-			<< ENERGY_THRESHOLD << " MeV threshold (value="
-			<< setenergy << ").");
-	  }
-	  break;
-	case rbuild::RingConfig::SEQUENTIAL:
-	  sequential(jt->pattern());
-	  break;
-	default: //do nothing
-	  break;
-	}
-	RINGER_DEBUG1("Set energy for \"" << jt->config().name() << "\" = "
-		      << setenergy);
-      } //for each RingSet (second iteration)
-      double event = emsection + hadsection; // event energy
-      RINGER_DEBUG1("Event energy = " << event);
-      RINGER_DEBUG1("E.m. energy = " << emsection);
-      RINGER_DEBUG1("Hadronic energy = " << hadsection);
-
+      //extra "magic" to place the entry at the output DB
       bool rings_not_init = true;
-      data::Pattern these_rings(1); //all my current values
-      //for each RingSet (third iteration) -- now accumulate and store
-      for (rset_type::iterator jt=rset.begin(); jt!=rset.end(); ++jt) {
-	//what is the normalisation strategy here? Do the rest of options
-	switch(jt->config().normalisation()) {
-	case rbuild::RingConfig::EVENT:
-	  if (event > ENERGY_THRESHOLD) jt->pattern() /= fabs(event);
-	  else {
-	    RINGER_WARN(reporter, "Ignoring normalisation command \""
-			<< norm2str(jt->config().normalisation())
-			<< "\" for RingSet \"" << jt->config().name() 
-			<< "\" and RoI" << " with L1Id #" << (*it)->lvl1_id()
-			<< " and RoI #" << (*it)->roi_id() << " because the"
-			" denominator is bellow the " 
-			<< ENERGY_THRESHOLD << " MeV threshold (value="
-			<< event << ").");
-	  }
-	  break;
-	case rbuild::RingConfig::SECTION:
-	  if (jt->config().section() == rbuild::RingConfig::EM) {
-	    if (emsection > ENERGY_THRESHOLD) 
-	      jt->pattern() /= fabs(emsection);
-	    else {
-	      RINGER_WARN(reporter, "Ignoring normalisation command \""
-			  << norm2str(jt->config().normalisation())
-			  << "\" for RingSet \"" << jt->config().name() 
-			  << "\" and RoI" << " with L1Id #" 
-			  << (*it)->lvl1_id() << " and RoI #" 
-			  << (*it)->roi_id() << " because the"
-			  " denominator is bellow the "
-			  << ENERGY_THRESHOLD << " MeV threshold (value="
-			  << emsection << ").");
-	    }
-	  }
-	  else {
-	    if (hadsection > ENERGY_THRESHOLD) 
-	      jt->pattern() /= fabs(hadsection);
-	    else {
-	      RINGER_WARN(reporter, "Ignoring normalisation command \""
-			  << norm2str(jt->config().normalisation())
-			  << "\" for RingSet \"" << jt->config().name() 
-			  << "\" and RoI" << " with L1Id #" 
-			  << (*it)->lvl1_id() << " and RoI #" 
-			  << (*it)->roi_id() << " because the"
-			  " denominator is bellow the "
-			  << ENERGY_THRESHOLD << " MeV threshold (value="
-			  << hadsection << ").");
-	    }
-	  }
-	  break;
-	default: //do nothing
-	  break;
-	}
-
-	//make sure we get the zeroes and forget about this immediately
+      data::Pattern these_rings(1);
+      for (std::vector<rbuild::RingSet>::iterator 
+	     jt=rset.begin(); jt!=rset.end(); ++jt) {
+	//Now store the values as a data::Pattern before returning
 	if (rings_not_init) {
 	  these_rings = jt->pattern();
 	  rings_not_init = false;
@@ -386,7 +448,6 @@ int main (int argc, char** argv)
 	else these_rings.append(jt->pattern());
       } //for each RingSet (third iteration)
 
-      //set new Pattern
       data::RoIPatternSet::RoIAttribute attr;
       attr.lvl1_id = (*it)->lvl1_id();
       attr.roi_id = (*it)->roi_id();
@@ -407,7 +468,7 @@ int main (int argc, char** argv)
     std::string outfilename = bname;
     outfilename += "-rings.xml";
     db.save(outfilename);
-    RINGER_REPORT(reporter, "Output file \"" << outfilename 
+    RINGER_REPORT(reporter, "Output file \"" << outfilename
 		  << "\" was correctly saved and closed.");
 
   } //try clause
