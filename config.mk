@@ -4,7 +4,7 @@
 # Establishes the default system configuration
 CC=g++
 CXXFLAGS += -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -O2
-VERSION=0.5.2
+VERSION=0.5.3
 
 # How to define the package name
 PACKAGE = $(shell basename `pwd`)
