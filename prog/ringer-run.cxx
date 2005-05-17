@@ -298,7 +298,7 @@ void build_rings(const roiformat::RoI* roi,
 
     //add the ring values for those cells, based on the center given or
     //calculate its own center.
-    if (own_center) {
+    if (!own_center) {
       double my_eta, my_phi;
       roiformat::max(cells, my_eta, my_phi);
       jt->add(cells, my_eta, my_phi);
