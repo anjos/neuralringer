@@ -32,7 +32,9 @@ sys::Reporter::Reporter(const std::string& type)
   }
 
   ///Start-up report: the date
-  report("This is the NeuralRinger v0.5.3 Reporter, good day.");
+  std::ostringstream oss;
+  oss << "This is the NeuralRinger v" << NR_VERSION << " Reporter, good day.";
+  report(oss.str());
   RINGER_DEBUG1("Debug level 1 is activated.");
   RINGER_DEBUG2("Debug level 2 is activated.");
   RINGER_DEBUG3("Debug level 3 is activated.");
@@ -41,7 +43,9 @@ sys::Reporter::Reporter(const std::string& type)
 sys::Reporter::~Reporter()
 {
   //Shutdown report.
-  report("RINGER v0.5.3 Reporter has finished.");
+  std::ostringstream oss;
+  oss << "NeuralRinger v" << NR_VERSION << " Reporter has finished.";
+  report(oss.str());
   delete m_impl;
 }
 

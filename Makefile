@@ -54,7 +54,9 @@ ringer-run: prog/ringer-run.o
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
 
 doc:
-	@doxygen
+	@sed -e 's/\([[:space:]]*PROJECT_NUMBER[[:space:]]*\=[[:space:]]*\)[0-9\.]*/\1$(VERSION)/g' Doxyfile > Doxyfile.updated
+	@mv -f Doxyfile.updated Doxyfile
+	@echo doxygen
 
 install:
 	$(foreach dir, $(PROJECT_DIR), $(MAKE) -C $(dir) install;)

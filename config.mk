@@ -2,9 +2,9 @@
 # André Rabello <Andre.dos.Anjos@cern.ch>
 
 # Establishes the default system configuration
+VERSION=0.5.4
 CC=g++
-CXXFLAGS += -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -O2
-VERSION=0.5.3
+CXXFLAGS += -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -O2 -DNR_VERSION=\"$(VERSION)\"
 
 # How to define the package name
 PACKAGE = $(shell basename `pwd`)
