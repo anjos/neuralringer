@@ -58,6 +58,7 @@ typedef struct param_t {
   std::string timings; ///< where to place timing information
   std::string net; ///< name of the neural net file
   std::string output; ///< where to save the output 
+  bool global_center; ///< should I calculate a peak on each calo layer?
 } param_t;
 
 /**
@@ -75,12 +76,15 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
   char* timings=0;
   char* net=0;
   char* output=0;
+  int global_center=0;
 
   //return val is kept to zero always so popt processes everything
   //automatically
   struct poptOption optionsTable[] = {
     { "ring-config", 'c', POPT_ARG_STRING, &ringconfig, 0,
       "location of the Ring Configuration XML file to use", "path" },
+    { "global-center", 'g', POPT_ARG_NONE, &global_center, 0,
+      "Use etaxphi center as provided by layer 2 (default is false)", "" },
     { "net", 'n', POPT_ARG_STRING, &net, 0,
       "where to read the network", "path: no default" },
     { "output", 'o', POPT_ARG_STRING, &output, 0,
@@ -112,6 +116,8 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
   }
 
   //copy all
+  p.global_center = (global_center)?true:false;
+
   if (timings) {
     p.time = true;
     p.timings = timings;
@@ -151,7 +157,8 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
 
   RINGER_DEBUG1("Command line options have been read.");
   RINGER_REPORT(reporter, "Using ring-config=\"" << p.ringconfig
-		<< "\"; roi-dump=\"" << p.roidump << "\".");
+		<< "\"; roi-dump=\"" << p.roidump << "; global-center=\""
+		<< p.global_center << "\".");
   if (p.time)
     RINGER_REPORT(reporter, "Timings will be output at \"" 
 		  << p.timings << "\".");
@@ -195,11 +202,11 @@ void sequential (data::Pattern& rings, const data::Feature& stop_energy=100.0)
   data::SumExtractor sum;
   norm[0] = sum(rings);
   //if the sum is less than stop, apply layer normalisation to all rings
-  if (norm[0] < stop) {
+  if (std::fabs(norm[0]) < stop) {
 
     //if the sum is even less than the threshold, do not apply any
     //normalisation at all here!
-    if (norm[0] < ENERGY_THRESHOLD) {
+    if (std::fabs(norm[0]) < ENERGY_THRESHOLD) {
       RINGER_DEBUG2("Layer sum is less than \"" << ENERGY_THRESHOLD << "\","
 		    << " skipping normalisation for this set.");
       return;
