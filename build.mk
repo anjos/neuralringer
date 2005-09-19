@@ -12,10 +12,10 @@ mytest: $(MYTSTSRC:%.cxx=%)
 
 install_lib: $(LIB)
 	@[ -d $(INSTALL_LIB) ] || mkdir -pv $(INSTALL_LIB);
-	@[ -e $(LIB) ] && install --mode=0755 -Cv $(LIB) $(INSTALL_LIB);
+	@[ -e $(LIB) ] && install --mode=0755 -v $(LIB) $(INSTALL_LIB);
 	@for tp in $(TSTSRC:src/%.cxx=%); do \
 	  if [ -e $${tp} ]; then \
-		install --mode=0755 -Cv $${tp} $(INSTALL_LIB); \
+		install --mode=0755 -v $${tp} $(INSTALL_LIB); \
 	  fi \
 	done
 
@@ -25,12 +25,12 @@ install_bin:
 install_inc: $(shell find $(PACKAGE) -name "*.h")
 	@[ -e $(INSTALL_INC)/$(PACKAGE) ] \
 	 || mkdir -pv $(INSTALL_INC)/$(PACKAGE);
-	@install --mode=0644 -Cv $? $(INSTALL_INC)/$(PACKAGE);
+	@install --mode=0644 -v $? $(INSTALL_INC)/$(PACKAGE);
 
 install_schema: $(SCHEMA)
 	@[ -e $(INSTALL_SCHEMA) ] \
 	         || mkdir -pv $(INSTALL_SCHEMA);
-	@[ -z $? ] || install --mode=0644 -Cv $? $(INSTALL_SCHEMA);
+	@[ -z $? ] || install --mode=0644 -v $? $(INSTALL_SCHEMA);
 
 install: install_lib install_bin install_inc install_schema
 
