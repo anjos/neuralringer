@@ -48,6 +48,11 @@ namespace data {
   public: //interface
 
     /**
+     * Destructor virtualization
+     */
+    virtual ~PatternSet () {}
+
+    /**
      * This method sets a specific data::Pattern inside the set to a new
      * value, also given as parameter. The new data::Pattern is checked for
      * size compatibility with the old one. If both have the same size, the

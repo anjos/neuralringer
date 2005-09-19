@@ -35,6 +35,12 @@ namespace strategy {
   public:
 
     /**
+     * Destructor virtualization
+     *
+     */
+    virtual ~SynapseStrategy() {}
+
+    /**
      * Defined the basic learning interface. This will returnd the adjustment
      * for the value of weight to train the neural network.
      *

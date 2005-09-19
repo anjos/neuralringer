@@ -25,6 +25,12 @@ namespace strategy {
   public:
 
     /**
+     * Destructor virtualization
+     *
+     */
+    virtual ~Neuron() {}
+
+    /**
      * Defines the basic learning interface for neurons.
      *
      * @param data The data to transform according to this Strategy
