@@ -1,13 +1,13 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file sys/Codec.h
+ * @file sys/sys/libxml2_Codec.h
  *
  * @brief Describes a way to handle strings in differents charsets.
  */
 
-#ifndef RINGER_SYS_CODEC_H
-#define RINGERSYS_CODEC_H
+#ifndef RINGER_SYS_LIBXML2_CODEC_H
+#define RINGER_SYS_LIBXML2_CODEC_H
 
 #include <string>
 #include <libxml/encoding.h>
@@ -75,4 +75,4 @@ namespace sys {
 }
 
 
-#endif /* RINGER_SYS_CODEC_H */
+#endif /* RINGER_SYS_LIBXML2_CODEC_H */
