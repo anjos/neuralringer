@@ -1,14 +1,14 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file sys/XMLProcessor.h
+ * @file sys/sys/libxml2_XMLProcessor.h
  *
  * @brief Builds an XML processor and writer that is able to operate on valid
  * XML files.
  */
 
-#ifndef RINGER_SYS_XMLPROCESSOR_H
-#define RINGER_SYS_XMLPROCESSOR_H
+#ifndef RINGER_SYS_LIBXML2_XMLPROCESSOR_H
+#define RINGER_SYS_LIBXML2_XMLPROCESSOR_H
 
 #include <string>
 #include <libxml/xmlschemas.h>
@@ -77,4 +77,4 @@ namespace sys {
 
 }
 
-#endif /* RINGER_SYS_XMLPROCESSOR_H */
+#endif /* RINGER_SYS_LIBXML2_XMLPROCESSOR_H */

@@ -1,13 +1,13 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file sys/xmlutil.h
+ * @file sys/sys/libxml2_xmlutil.h
  *
  * @brief Describes a set of utilities to parse XML data files.
  */
 
-#ifndef RINGER_SYS_XMLUTIL_H
-#define RINGER_SYS_XMLUTIL_H
+#ifndef RINGER_SYS_LIBXML2_XMLUTIL_H
+#define RINGER_SYS_LIBXML2_XMLUTIL_H
 
 #include <vector>
 #include <string>
@@ -87,7 +87,7 @@ namespace sys {
    * @param name The name of the attribute to take from the node
    */
   std::string get_attribute_string (const xmlNodePtr node, 
-									const std::string& name);
+				    const std::string& name);
 
   /**
    * Get an attribute of type unsigned integer
@@ -96,7 +96,7 @@ namespace sys {
    * @param name The name of the attribute to take from the node
    */
   unsigned int get_attribute_uint (const xmlNodePtr node, 
-								   const std::string& name);
+				   const std::string& name);
 
   /**
    * Get an attribute of type double
@@ -136,7 +136,7 @@ namespace sys {
    * @return The newly created element.
    */
   xmlNodePtr put_element_text (xmlNodePtr root,	 const std::string& name,
-							   const std::string& content);
+			       const std::string& content);
 
   /**
    * Places a textual element inside another element with the parameters given
@@ -148,7 +148,7 @@ namespace sys {
    * @return The newly created element.
    */
   xmlNodePtr put_element_date (xmlNodePtr root, const std::string& name,
-							   const time_t& content);
+			       const time_t& content);
 
   /**
    * Places a double element inside another element with the parameters given
@@ -160,7 +160,7 @@ namespace sys {
    * @return The newly created element.
    */
   xmlNodePtr put_element_double (xmlNodePtr root, const std::string& name,
-								 const double& content);
+				 const double& content);
 
   /**
    * Places a list of double element inside another element with the
@@ -173,7 +173,7 @@ namespace sys {
    * @return The newly created element.
    */
   xmlNodePtr put_element_doubles (xmlNodePtr root, const std::string& name,
-								  const std::vector<double>& content);
+				  const std::vector<double>& content);
 
   /**
    * Places a text attribute on a element
@@ -183,7 +183,7 @@ namespace sys {
    * @param value The atribute value
    */
   xmlNodePtr put_attribute_text (xmlNodePtr e, const std::string& name,
-								 const std::string& value);
+				 const std::string& value);
 
   /**
    * Places an unsigned integer attribute on a element
@@ -193,7 +193,7 @@ namespace sys {
    * @param value The atribute value
    */
   xmlNodePtr put_attribute_uint (xmlNodePtr e, const std::string& name,
-								 unsigned int value);
+				 unsigned int value);
 
   /**
    * Places a double attribute on a element
@@ -203,8 +203,8 @@ namespace sys {
    * @param value The atribute value
    */
   xmlNodePtr put_attribute_double (xmlNodePtr e, const std::string& name,
-								   const double& value);
+				   const double& value);
 
 }
 
-#endif /* RINGER_SYS_XMLUTIL_H */
+#endif /* RINGER_SYS_LIBXML2_XMLUTIL_H */
