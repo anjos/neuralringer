@@ -1,12 +1,12 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file Codec.cxx
+ * @file sys/src/libxml2_Codec.hxx
  *
  * Implements the string converter.
  */
 
-#include "sys/Codec.h"
+#include "sys/libxml2_Codec.h"
 #include "sys/debug.h"
 #include "sys/Exception.h"
 #include <cstdlib>
