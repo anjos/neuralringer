@@ -1,10 +1,13 @@
 # Dear emacs, this is -*- makefile -*-
-# André Rabello <Andre.dos.Anjos@cern.ch>
+# Andre Rabello <Andre.dos.Anjos@cern.ch>
 
 # Establishes the default system configuration
 VERSION=0.5.4
 CC=g++
 CXXFLAGS += -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -O2 -DNR_VERSION=\"$(VERSION)\"
+
+# The XML backend to use, can be "xerces" or "libxml2"
+XML_BACK_END = xerces
 
 # How to define the package name
 PACKAGE = $(shell basename `pwd`)
