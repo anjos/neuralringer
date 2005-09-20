@@ -6,7 +6,6 @@
  * @brief Chooser between the different XML Parsing backends.
  */
 
-#ifdef XERCES_XML_BACK_END
-#else
+#ifndef XERCES_XML_BACK_END
 #include "libxml2_Codec.hxx"
 #endif
