@@ -382,7 +382,8 @@ INPUT                  = sys data roiformat rbuild config network prog
 # *.h++ *.idl *.odl *.cs *.php *.php3 *.inc
 
 FILE_PATTERNS          = *.cxx \
-                         *.h
+                         *.h \
+			 *.hxx
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
