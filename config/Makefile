@@ -1,5 +1,5 @@
 # Dear emacs, this is -*- makefile -*-
-# André Rabello <Andre.dos.Anjos@cern.ch>
+# Andre Rabello <Andre.dos.Anjos@cern.ch>
 
 sinclude ../config.mk
 DEPEND = sys data
