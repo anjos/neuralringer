@@ -3,7 +3,13 @@
 
 sinclude ../config.mk
 DEPEND = sys data
-CXXFLAGS += `xml2-config --cflags`
+ifeq ($(XML_BACK_END),xerces)
+ CXXFLAGS += -I${XERCESCROOT}/include -DXERCES_XML_BACK_END
+ LDFLAGS += -lxerces-c
+else
+ CXXFLAGS += $(shell xml2-config --cflags)
+ LDFLAGS += $(shell xml2-config --libs)
+endif
 SCHEMA += ./schema/network.xsd
 INSTALL_DIR = ../installed
 sinclude ../build.mk

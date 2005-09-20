@@ -3,8 +3,15 @@
 
 sinclude ../config.mk
 DEPEND = sys
-CXXFLAGS += $(shell gsl-config --cflags) `xml2-config --cflags` -DHAVE_INLINE
+CXXFLAGS += $(shell gsl-config --cflags) -DHAVE_INLINE
 LDFLAGS += $(shell gsl-config --libs)
+ifeq ($(XML_BACK_END),xerces)
+ CXXFLAGS += -I${XERCESCROOT}/include -DXERCES_XML_BACK_END
+ LDFLAGS += -lxerces-c
+else
+ CXXFLAGS += $(shell xml2-config --cflags)
+ LDFLAGS += $(shell xml2-config --libs)
+endif
 INSTALL_DIR = ../installed
 SCHEMA += ./schema/database.xsd
 sinclude ../build.mk
