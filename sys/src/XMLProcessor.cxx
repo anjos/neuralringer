@@ -1,7 +1,7 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file sys/src/XMLProcessor.cxx
+ * @file sys/src/libxml2_XMLProcessor.cxx
  *
  * Implements the XML processor.
  */
@@ -10,7 +10,7 @@
 #include "sys/debug.h"
 #include "sys/util.h"
 #include "sys/Exception.h"
-#include "sys/Codec.h"
+#include "sys/libxml2_Codec.h"
 #include <sstream>
 
 #include <libxml/parser.h>
