@@ -1,13 +1,13 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file sys/src/xmlutil.cxx
+ * @file sys/src/libxml2_xmlutil.cxx
  *
  * Implements a set of utilities to parse XML configuration files.
  */
 
 #include "sys/xmlutil.h"
-#include "sys/Codec.h"
+#include "sys/libxml2_Codec.h"
 #include "sys/ustring.h"
 #include "sys/util.h"
 #include "sys/debug.h"
@@ -191,12 +191,8 @@ xmlNodePtr sys::put_attribute_double (xmlNodePtr e, const std::string& name,
 xmlNodePtr sys::put_element_doubles (xmlNodePtr root, const std::string& name,
 				     const std::vector<double>& content)
 {
-  xmlNodePtr entry = put_element(root, name);
   std::ostringstream oss;
   for (size_t i=0; i<content.size()-1; ++i) oss << content[i] << " ";
   oss << content[content.size()-1];
-  xmlNodePtr text = 
-    xmlNewText(sys::default_codec.transcode(oss.str()).c_str());
-  xmlAddChild (entry, text);
-  return entry;
+  return put_element_text(root, name, oss.str());
 }
