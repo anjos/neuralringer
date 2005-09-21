@@ -263,9 +263,7 @@ data::Database<TSet>::Database (const std::string& filename,
   //for all classes
   for (sys::xml_ptr jt=sys::get_first_child(top); jt; 
        jt=sys::get_next_element(jt)) {
-#ifndef XERCES_XML_BACK_END
-    if (jt->type != XML_ELEMENT_NODE) continue;
-#endif
+    if (!sys::is_element(jt)) continue;
     std::string name = sys::get_attribute_string(jt, "name");
     if (m_data.find(name) != m_data.end()) {
       RINGER_DEBUG1("Error! Class name \"" << name << "\" already exists!"

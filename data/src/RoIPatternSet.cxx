@@ -39,9 +39,7 @@ data::RoIPatternSet::RoIPatternSet(const sys::xml_ptr node)
   //for all entries in a class
   for (sys::xml_ptr_const it = sys::get_first_child(node); 
        it; it=sys::get_next_element(it)) {
-#ifndef XERCES_XML_BACK_END
-    if (it->type != XML_ELEMENT_NODE) continue;
-#endif
+    if (!sys::is_element(it)) continue;
     std::vector<double> curr;
     RoIAttribute attr;
     attr.lvl1_id = sys::get_attribute_uint(it, "lvl1_id");
@@ -49,9 +47,7 @@ data::RoIPatternSet::RoIPatternSet(const sys::xml_ptr node)
     attr.eta = sys::get_attribute_double(it, "eta");
     attr.phi = sys::get_attribute_double(it, "phi");
     sys::xml_ptr_const feats = sys::get_first_child(it);
-#ifndef XERCES_XML_BACK_END
-    if (feats->type != XML_ELEMENT_NODE) feats = sys::get_next_element(feats);
-#endif
+    if (!sys::is_element(feats)) feats = sys::get_next_element(feats);
     sys::get_element_doubles(feats, curr);
     data.push_back(new data::Pattern(curr));
     m_attr.push_back(attr);
