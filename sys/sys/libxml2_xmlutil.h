@@ -35,7 +35,14 @@ namespace sys {
   /**
    * Returns the next element in a set of elements
    */ 
-  xmlNodePtr get_next_element (const xmlNodePtr node);
+  const xmlNodePtr get_next_element (const xmlNodePtr node);
+
+  /**
+   * Returns the first child of a node
+   *
+   * @param top The top node to consider
+   */
+  const xmlNodePtr get_first_child (const xmlNodePtr top);
 
   /**
    * Returns the "translated" name of the given node
@@ -109,11 +116,25 @@ namespace sys {
   /**
    * Creates a new XML node with the given name
    *
+   * @param any A pointer to any node of the document where you want to insert
+   * the new node. It does @b not have to be the "future" parent of the
+   * new. This is actually not needed by libxml2, but is there just to cope in
+   * the differences with Xerces.
    * @param name The name of the node to create
    *
    * @return The newly created node
    */
-  xmlNodePtr make_node (const std::string& name);
+  xmlNodePtr make_node (xmlNodePtr any, const std::string& name);
+
+  /**
+   * Places an XML node under another node
+   *
+   * @param top The node that will become the top node
+   * @param child The node that will become the child node
+   *
+   * @return The top node
+   */
+  xmlNodePtr put_node (xmlNodePtr top, xmlNodePtr child);
 
   /**
    * Places an attribute-less element inside another element with the

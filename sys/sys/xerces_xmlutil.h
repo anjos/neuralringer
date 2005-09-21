@@ -42,6 +42,13 @@ namespace sys {
   const xercesc::DOMElement* get_next_element (const xercesc::DOMElement* node);
 
   /**
+   * Returns the first child of a node
+   *
+   * @param top The top node to consider
+   */
+  const xercesc::DOMElement* get_first_child (const xercesc::DOMElement* top);
+
+  /**
    * Returns the "translated" name of the given node
    *
    * @param node The node from where to extract the name
@@ -124,6 +131,17 @@ namespace sys {
    */
   xercesc::DOMElement* make_node (xercesc::DOMElement* any,
 				  const std::string& name);
+
+  /**
+   * Places an XML node under another node
+   *
+   * @param top The node that will become the top node
+   * @param child The node that will become the child node
+   *
+   * @return The top node
+   */
+  xercesc::DOMElement* put_node (xercesc::DOMElement* top,
+				 xercesc::DOMElement* child);
 
   /**
    * Places an attribute-less element inside another element with the

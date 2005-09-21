@@ -29,14 +29,12 @@ namespace sys {
     /**
      * Starts up the XML processor
      *
-     * @param name The name of the root element on a document of this type
      * @param schema The obligatory schema URI to set before validating
      * any document.
      * @param reporter A reporter to write errors to the user from
      * parser initialization.
      */ 
-    XMLProcessor (const std::string& rootname, const std::string& schema,
-		  sys::Reporter& reporter);
+    XMLProcessor (const std::string& schema, sys::Reporter& reporter);
 
     /**
      * Virtualisation
@@ -57,8 +55,10 @@ namespace sys {
 
     /**
      * Creates a new document of the type I set for this processor
+     *
+     * @param root The name of the root element of the new XML document
      */
-    xercesc::DOMDocument* new_document (void) const;
+    xercesc::DOMDocument* new_document (const std::string& root) const;
 
     /**
      * Writes a DOMDocument to a file.

@@ -11,8 +11,24 @@
 
 #ifdef XERCES_XML_BACK_END 
 #include "sys/xerces_xmlutil.h"
+
+namespace sys {
+
+  typedef xercesc::DOMElement* xml_ptr;
+  typedef const xercesc::DOMElement* xml_ptr_const;
+
+}
+
 #else
 #include "sys/libxml2_xmlutil.h"
+
+namespace sys {
+
+  typedef xmlNodePtr xml_ptr;
+  typedef const xmlNodePtr xml_ptr_const;
+
+}
+
 #endif
 
 #endif /* RINGER_SYS_XMLUTIL_H */

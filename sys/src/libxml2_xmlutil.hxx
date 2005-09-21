@@ -49,10 +49,17 @@ void sys::tokenize (const std::string& s, std::vector<std::string>& tokens)
   }
 }
 
-xmlNodePtr sys::get_next_element (const xmlNodePtr node)
+const xmlNodePtr sys::get_next_element (const xmlNodePtr node)
 {
   xmlNodePtr retval = node->next;
   while (retval && retval->type != XML_ELEMENT_NODE) retval = retval->next;
+  return retval;
+}
+
+const xmlNodePtr sys::get_first_child (const xmlNodePtr top)
+{
+  sys::xml_ptr retval = top->children;
+  if (retval->type != XML_ELEMENT_NODE) retval = sys::get_next_element(retval);
   return retval;
 }
 
@@ -127,16 +134,21 @@ double sys::get_attribute_double (const xmlNodePtr node,
   return strtod(c.c_str(), 0);
 }
 
-xmlNodePtr sys::make_node (const std::string& name)
+xmlNodePtr sys::make_node (xmlNodePtr, const std::string& name)
 {
   return xmlNewNode(NULL, sys::default_codec.transcode(name).c_str());
+}
+
+xmlNodePtr put_node (xmlNodePtr top, xmlNodePtr child)
+{
+  xmlAddChild(top, child);
+  return top;
 }
 
 xmlNodePtr sys::put_element (xmlNodePtr parent, const std::string& name)
 {
   xmlNodePtr node = sys::make_node(name);
-  xmlAddChild(parent, node);
-  return node;
+  return sys::put_node(parent, node);
 }
 
 xmlNodePtr sys::put_element_text (xmlNodePtr parent, const std::string& name,
@@ -196,3 +208,4 @@ xmlNodePtr sys::put_element_doubles (xmlNodePtr root, const std::string& name,
   oss << content[content.size()-1];
   return put_element_text(root, name, oss.str());
 }
+

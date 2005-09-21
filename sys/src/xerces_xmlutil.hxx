@@ -52,11 +52,19 @@ void sys::tokenize (const std::string& s, std::vector<std::string>& tokens)
 
 const xercesc::DOMElement* sys::get_next_element (const xercesc::DOMElement* node)
 {
-  const xercesc::DOMElement* retval = 
-    dynamic_cast<const xercesc::DOMElement*>(node->getNextSibling());
+  const xercesc::DOMNode* retval = node->getNextSibling();
   while (retval && retval->getNodeType() != xercesc::DOMElement::ELEMENT_NODE)
-    retval = dynamic_cast<const xercesc::DOMElement*>(retval->getNextSibling());
-  return retval;
+    retval = retval->getNextSibling();
+  return dynamic_cast<const xercesc::DOMElement*>(retval);
+}
+
+const xercesc::DOMElement* sys::get_first_child (const xercesc::DOMElement* top)
+{
+  if (!top->hasChildNodes()) return 0;
+  const xercesc::DOMNode* retval = top->getFirstChild();
+  while (retval && retval->getNodeType() != xercesc::DOMElement::ELEMENT_NODE)
+    retval = retval->getNextSibling();
+  return dynamic_cast<const xercesc::DOMElement*>(retval);
 }
 
 std::string sys::get_element_name (const xercesc::DOMElement* node)
@@ -135,12 +143,18 @@ xercesc::DOMElement* sys::make_node (xercesc::DOMElement* any,
   return doc->createElement(xercesc::XMLString::transcode(name.c_str()));
 }
 
+xercesc::DOMElement* sys::put_node (xercesc::DOMElement* top, 
+				    xercesc::DOMElement* child)
+{
+  top->appendChild(child);
+  return top;
+}
+
 xercesc::DOMElement* sys::put_element (xercesc::DOMElement* parent, 
 				       const std::string& name)
 {
   xercesc::DOMElement* node = sys::make_node(parent, name);
-  parent->appendChild(node);
-  return node;
+  return sys::put_node(parent, node);
 }
 
 xercesc::DOMElement* sys::put_element_text (xercesc::DOMElement* parent, 

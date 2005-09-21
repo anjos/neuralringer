@@ -249,14 +249,12 @@ xercesc::DOMWriter* start_writer
   return writer;
 }
 
-sys::XMLProcessor::XMLProcessor (const std::string& rootname, 
-				    const std::string& schema,
-				    sys::Reporter& reporter)
+sys::XMLProcessor::XMLProcessor (const std::string& schema,
+				 sys::Reporter& reporter)
   : m_impl(0),
     m_parser(0),
     m_writer(0),
     m_handler(0),
-    m_rootname(rootname),
     m_schema(schema),
     m_reporter(reporter)
 {
@@ -310,10 +308,10 @@ xercesc::DOMDocument* sys::XMLProcessor::read (const std::string& document)
   return domdoc;
 }
 
-xercesc::DOMDocument* sys::XMLProcessor::new_document (void) const
+xercesc::DOMDocument* sys::XMLProcessor::new_document (const std::string& root) const
 {
   return m_impl->createDocument
-    (0, xercesc::XMLString::transcode(m_rootname.c_str()), 0);
+    (0, xercesc::XMLString::transcode(root.c_str()), 0);
 }
 
 bool sys::XMLProcessor::write (xercesc::DOMDocument* document,
