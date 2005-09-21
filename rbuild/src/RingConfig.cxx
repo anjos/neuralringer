@@ -47,7 +47,7 @@ rbuild::RingConfig::~RingConfig()
 {
 }
 
-rbuild::RingConfig::RingConfig (const xmlNodePtr node)
+rbuild::RingConfig::RingConfig (sys::xml_ptr_const node)
 {
   //Read length and name -- easiest
   m_max = sys::get_attribute_uint(node, "length");
@@ -55,18 +55,18 @@ rbuild::RingConfig::RingConfig (const xmlNodePtr node)
   m_section = str2section(sys::get_attribute_string(node, "section"));
   m_norm = str2norm(sys::get_attribute_string(node, "normalisation"));
 
-  xmlNodePtr c = node->children; //parameters...
-  while (c->type != XML_ELEMENT_NODE) c = sys::get_next_element(c);
+  sys::xml_ptr_const c = sys::get_first_child(node); //parameters...
+  while (!sys::is_element(c)) c = sys::get_next_element(c);
   if (sys::get_element_name(c) == "width") {
     m_etasz = sys::get_attribute_double(c, "eta");
     m_phisz = sys::get_attribute_double(c, "phi");
   }
   c = sys::get_next_element(c);
-  while (c->type != XML_ELEMENT_NODE) c = sys::get_next_element(c);
+  while (!sys::is_element(c)) c = sys::get_next_element(c);
   if (sys::get_element_name(c) == "detector") {
-    c = c->children; //entries
+    c = sys::get_first_child(c); //entries
     while (c) {
-      while (c->type != XML_ELEMENT_NODE) c = sys::get_next_element(c);
+      while (!sys::is_element(c)) c = sys::get_next_element(c);
       if (sys::get_element_name(c) == "entry") {
 	m_detector.push_back(roiformat::str2sampling
 			     (sys::get_element_string(c)));

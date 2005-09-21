@@ -14,7 +14,7 @@
 #define RINGER_RBUILD_RINGCONFIG_H
 
 #include "roiformat/Cell.h"
-#include <libxml/tree.h>
+#include "sys/xmlutil.h"
 #include <vector>
 #include <string>
 
@@ -65,7 +65,7 @@ namespace rbuild {
      *
      * @param node The node from where I should get my configuration
      */
-    RingConfig (const xmlNodePtr node);
+    RingConfig (sys::xml_ptr_const node);
 
     /**
      * Empty ring configuration. Pay attention when using it...

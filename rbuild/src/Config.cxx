@@ -17,7 +17,6 @@
 #include "sys/Exception.h"
 #include "sys/util.h"
 #include <cstdlib>
-#include <libxml/tree.h>
 
 rbuild::Config::Config (const std::string& filename, sys::Reporter& reporter)
   : m_reporter(reporter)
@@ -31,25 +30,22 @@ rbuild::Config::Config (const std::string& filename, sys::Reporter& reporter)
   schema += "/ring.xsd";
   sys::XMLProcessor xmlproc(schema, m_reporter);
   RINGER_DEBUG2("Trying to parse " << filename);
-  xmlNodePtr root = xmlproc.read(filename);
+  sys::xml_ptr root = xmlproc.read(filename);
   if (!root) {
     RINGER_WARN(m_reporter, "XML network file " << filename 
 	        << " cannot be parsed. Exception thrown.");
     throw RINGER_EXCEPTION("Cannot parse XML network file");
   }
-  for (xmlNodePtr it=root->children; it; it=sys::get_next_element(it)) {
-    if (it->type == XML_ELEMENT_NODE &&
-	sys::get_element_name(it) == "header") {
-      //ignore
-      continue;
-    }
-    if (it->type == XML_ELEMENT_NODE && 
-	sys::get_element_name(it) == "config") {
+  for (sys::xml_ptr_const it=sys::get_first_child(root); it; 
+       it=sys::get_next_element(it)) {
+    if (sys::is_element(it) && sys::get_element_name(it) == "header") continue;
+    if (sys::is_element(it) && sys::get_element_name(it) == "config") {
       //loads the job layout
-      for (xmlNodePtr jt=it->children; jt; jt=sys::get_next_element(jt)) {
-	if (jt->type != XML_ELEMENT_NODE) continue;
+      for (sys::xml_ptr_const jt=sys::get_first_child(it); jt; 
+	   jt=sys::get_next_element(jt)) {
+	if (!sys::is_element(jt)) continue;
 	std::string name = sys::get_element_name(jt);
-	if (jt->type == XML_ELEMENT_NODE && name == "set") {
+	if (sys::is_element(jt) && name == "set") {
 	  typedef std::map<unsigned int, rbuild::RingConfig> map_type;
 	  unsigned int id = sys::get_attribute_uint(jt, "id");
 	  map_type::const_iterator it = m_config.find(id);
