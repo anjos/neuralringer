@@ -4,7 +4,7 @@
 sinclude ../config.mk
 DEPEND = sys data
 ifeq ($(XML_BACK_END),xerces)
- CXXFLAGS += -I${XERCESCROOT}/include -DXERCES_XML_BACK_END
+ CXXFLAGS += -DXERCES_XML_BACK_END
  LDFLAGS += -lxerces-c
 else
  CXXFLAGS += $(shell xml2-config --cflags)
