@@ -31,22 +31,27 @@ data::RoIPatternSet::RoIPatternSet(const data::RoIPatternSet& other)
   RINGER_DEBUG1("Created RoIPatternSet by copying");
 }
 
-data::RoIPatternSet::RoIPatternSet(const xmlNodePtr node)
+data::RoIPatternSet::RoIPatternSet(const sys::xml_ptr node)
   : m_set(1, 1),
     m_attr(0)
 {
   std::vector<Pattern*> data;
   //for all entries in a class
-  for (xmlNodePtr it = node->children; it; it=sys::get_next_element(it)) {
+  for (sys::xml_ptr_const it = sys::get_first_child(node); 
+       it; it=sys::get_next_element(it)) {
+#ifndef XERCES_XML_BACK_END
     if (it->type != XML_ELEMENT_NODE) continue;
+#endif
     std::vector<double> curr;
     RoIAttribute attr;
     attr.lvl1_id = sys::get_attribute_uint(it, "lvl1_id");
     attr.roi_id = sys::get_attribute_uint(it, "roi_id");
     attr.eta = sys::get_attribute_double(it, "eta");
     attr.phi = sys::get_attribute_double(it, "phi");
-    xmlNodePtr feats = it->children;
+    sys::xml_ptr_const feats = sys::get_first_child(it);
+#ifndef XERCES_XML_BACK_END
     if (feats->type != XML_ELEMENT_NODE) feats = sys::get_next_element(feats);
+#endif
     sys::get_element_doubles(feats, curr);
     data.push_back(new data::Pattern(curr));
     m_attr.push_back(attr);
@@ -197,16 +202,17 @@ void data::RoIPatternSet::shuffle (void)
   *this = new_order;
 }
 
-xmlNodePtr data::RoIPatternSet::dump (const std::string& cname,
-				      const size_t start_id) const
+sys::xml_ptr data::RoIPatternSet::dump (sys::xml_ptr any,
+					const std::string& cname,
+					const size_t start_id) const
 {
-  xmlNodePtr node = sys::make_node("class");
+  sys::xml_ptr node = sys::make_node(any, "class");
   sys::put_attribute_text(node, "name", cname);
   for (size_t i=0; i<size(); ++i) {
     RINGER_DEBUG3("XML'ing pattern[" << i << "] of class \"" << cname 
 		  << "\". The accumulated identifier is [" << start_id+i 
 		  << "].");
-    xmlNodePtr entry = sys::put_element(node, "roientry");
+    sys::xml_ptr entry = sys::put_element(node, "roientry");
     sys::put_attribute_uint(entry, "id", start_id + i);
     sys::put_attribute_uint(entry, "lvl1_id", m_attr[i].lvl1_id);
     sys::put_attribute_uint(entry, "roi_id", m_attr[i].roi_id);

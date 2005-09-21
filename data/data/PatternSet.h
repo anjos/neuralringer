@@ -9,7 +9,6 @@
 #ifndef DATA_PATTERNSET_H
 #define DATA_PATTERNSET_H
 
-#include <libxml/tree.h>
 #include <iostream>
 #include <string>
 #include "data/Pattern.h"
@@ -17,6 +16,7 @@
 #include "data/Ensemble.h"
 #include "sys/Reporter.h"
 #include "sys/File.h"
+#include "sys/xmlutil.h"
 
 namespace data {
 
@@ -154,12 +154,14 @@ namespace data {
     /**
      * Dumps the set as a set of XML nodes
      *
+     * @param any Any node in the XML tree.
      * @param cname The class name to use when dumping
      * @param start_id The initial number to take in consideration when
      * writing the entry identifiers.
      */
-    virtual xmlNodePtr dump (const std::string& cname,
-			     const size_t start_id=0) const = 0;
+    virtual sys::xml_ptr dump (sys::xml_ptr any,
+			       const std::string& cname,
+			       const size_t start_id=0) const = 0;
 
     /**
      * Applies the given PatternOperator to all my Pattern's.

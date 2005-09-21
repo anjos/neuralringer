@@ -11,7 +11,7 @@
 
 #include <string>
 #include <ctime>
-#include <libxml/tree.h>
+#include "sys/xmlutil.h"
 
 namespace data {
 
@@ -26,7 +26,7 @@ namespace data {
      *
      * @param node The XML node with the header
      */
-    Header (const xmlNodePtr node);
+    Header (const sys::xml_ptr node);
 
     /**
      * Builds a header from scratch
@@ -64,8 +64,10 @@ namespace data {
 
     /**
      * Returns the libxml representation for this header.
+     *
+     * @param any Any node in the XML tree.
      */
-    xmlNodePtr node ();
+    sys::xml_ptr node (sys::xml_ptr any);
 
     /**
      * Returns stuff for this node

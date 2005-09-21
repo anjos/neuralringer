@@ -11,11 +11,11 @@
 #ifndef DATA_DATABASE_H
 #define DATA_DATABASE_H
 
-#include "sys/Reporter.h"
-#include "data/Header.h"
-#include "data/PatternOperator.h"
 #include <string>
 #include <map>
+#include "data/Header.h"
+#include "data/PatternOperator.h"
+#include "sys/Reporter.h"
 #include "sys/Exception.h"
 #include "sys/util.h"
 #include "sys/xmlutil.h"
@@ -248,22 +248,24 @@ data::Database<TSet>::Database (const std::string& filename,
   sys::XMLProcessor xmlproc(schema, m_reporter);
 
   RINGER_DEBUG2("Trying to parse " << filename);
-  xmlNodePtr root = xmlproc.read(filename);
+  sys::xml_ptr root = xmlproc.read(filename);
   if (!root) {
     RINGER_WARN(m_reporter, "XML database file " << filename
 		<< " cannot be parsed. Exception thrown.");
     throw RINGER_EXCEPTION("Cannot parse XML database file");
   }
   
-  xmlNodePtr top = root->children;
-  if (top->type != XML_ELEMENT_NODE) top = sys::get_next_element(top);
+  sys::xml_ptr top = sys::get_first_child(root);
   //read header info
   m_header = new data::Header(top);
   top = sys::get_next_element(top);
 
   //for all classes
-  for (xmlNodePtr jt=top->children; jt; jt=sys::get_next_element(jt)) {
+  for (sys::xml_ptr jt=sys::get_first_child(top); jt; 
+       jt=sys::get_next_element(jt)) {
+#ifndef XERCES_XML_BACK_END
     if (jt->type != XML_ELEMENT_NODE) continue;
+#endif
     std::string name = sys::get_attribute_string(jt, "name");
     if (m_data.find(name) != m_data.end()) {
       RINGER_DEBUG1("Error! Class name \"" << name << "\" already exists!"
@@ -429,18 +431,18 @@ bool data::Database<TSet>::save (const std::string& filename)
   }
   schema += "/database.xsd";
   sys::XMLProcessor xmlproc(schema, m_reporter);
-  xmlNodePtr root = xmlproc.new_document("database");
+  sys::xml_ptr root = xmlproc.new_document("database");
   sys::put_attribute_text(root, "version", "0.1");
-  xmlAddChild(root, m_header->node());
-  xmlNodePtr data = sys::put_element(root, "data");
+  sys::put_node(root, m_header->node(root));
+  sys::xml_ptr data = sys::put_element(root, "data");
   size_t index = 0;
   for (typename std::map<std::string, TSet*>::const_iterator
 	 it = m_data.begin(); it != m_data.end(); ++it) {
     RINGER_DEBUG2("XML'ing class \"" << it->first << "\".");
-    xmlAddChild(data, it->second->dump(it->first, index));
+    sys::put_node(data, it->second->dump(root, it->first, index));
     index += it->second->size();
   }
-  xmlAddChild(root, data);
+  sys::put_node(root, data);
   RINGER_DEBUG2("Finally saving file...");
   if (!xmlproc.write(filename)) return false;
   RINGER_DEBUG2("File \"" << filename << "\" was saved.");

@@ -33,16 +33,21 @@ data::SimplePatternSet::SimplePatternSet(const size_t& size,
   RINGER_DEBUG1("SimplePatternSet created and initialised.");
 }
 
-data::SimplePatternSet::SimplePatternSet(const xmlNodePtr node)
+data::SimplePatternSet::SimplePatternSet(const sys::xml_ptr node)
   : m_data(0)
 {
   std::vector<Pattern*> data;
   //for all entries in a class
-  for (xmlNodePtr it = node->children; it; it=sys::get_next_element(it)) {
+  for (sys::xml_ptr_const it = sys::get_first_child(node); it; 
+       it=sys::get_next_element(it)) {
+#ifndef XERCES_XML_BACK_END
     if (it->type != XML_ELEMENT_NODE) continue;
+#endif
     std::vector<double> curr;
-    xmlNodePtr feats = it->children;
+    sys::xml_ptr_const feats = sys::get_first_child(it);
+#ifndef XERCES_XML_BACK_END
     if (feats->type != XML_ELEMENT_NODE) feats = sys::get_next_element(feats);
+#endif
     sys::get_element_doubles(feats, curr);
     data.push_back(new data::Pattern(curr));
   }
@@ -308,16 +313,17 @@ void data::SimplePatternSet::shuffle (void)
   *this = new_order;
 }
 
-xmlNodePtr data::SimplePatternSet::dump (const std::string& cname,
-					 const size_t start_id) const
+sys::xml_ptr data::SimplePatternSet::dump (sys::xml_ptr any,
+					   const std::string& cname,
+					   const size_t start_id) const
 {
-  xmlNodePtr node = sys::make_node("class");
+  sys::xml_ptr node = sys::make_node(any, "class");
   sys::put_attribute_text(node, "name", cname);
   for (size_t i=0; i<size(); ++i) {
     RINGER_DEBUG3("XML'ing pattern[" << i << "] of class \"" << cname 
 		  << "\". The accumulated identifier is [" << start_id+i 
 		  << "].");
-    xmlNodePtr entry = sys::put_element(node, "entry");
+    sys::xml_ptr entry = sys::put_element(node, "entry");
     sys::put_attribute_uint(entry, "id", start_id + i);
     const Pattern pat = pattern(i);
     std::vector<data::Feature> val(pat.size());

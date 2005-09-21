@@ -10,13 +10,13 @@
 #define DATA_SIMPLEPATTERNSET_H
 
 #include <gsl/gsl_matrix.h>
-#include <libxml/tree.h>
 #include <iostream>
 #include "data/Pattern.h"
 #include "data/PatternOperator.h"
 #include "data/Ensemble.h"
 #include "sys/Reporter.h"
 #include "sys/File.h"
+#include "sys/xmlutil.h"
 #include "data/PatternSet.h"
 
 namespace data {
@@ -73,7 +73,7 @@ namespace data {
      *
      * @param node The root node where I'm in
      */
-    SimplePatternSet(const xmlNodePtr node);
+    SimplePatternSet(const sys::xml_ptr node);
 
     /**
      * Creates a SimplePatternSet from another SimplePatternSet, by selecting
@@ -201,12 +201,14 @@ namespace data {
     /**
      * Dumps the set as a set of XML nodes
      *
+     * @param any Any node in the XML tree.
      * @param cname The class name to use when dumping
      * @param start_id The initial number to take in consideration when
      * writing the entry identifiers.
      */
-    virtual xmlNodePtr dump (const std::string& cname,
-			     const size_t start_id=0) const;
+    virtual sys::xml_ptr dump (sys::xml_ptr any,
+			       const std::string& cname,
+			       const size_t start_id=0) const;
 
     /**
      * Applies the given PatternOperator to all my Pattern's.

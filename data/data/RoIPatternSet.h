@@ -15,6 +15,7 @@
 
 #include "data/PatternSet.h"
 #include "data/SimplePatternSet.h"
+#include "sys/xmlutil.h"
 
 namespace data {
 
@@ -63,7 +64,7 @@ namespace data {
      *
      * @param node The root node where I'm in
      */
-    RoIPatternSet(const xmlNodePtr node);
+    RoIPatternSet(const sys::xml_ptr node);
 
     /**
      * Creates an RoIPatternSet from another RoIPatternSet, by selecting a set
@@ -224,12 +225,14 @@ namespace data {
     /**
      * Dumps the set as a set of XML nodes
      *
+     * @param any Any node in the XML tree.
      * @param cname The class name to use when dumping
      * @param start_id The initial number to take in consideration when
      * writing the entry identifiers.
      */
-    virtual xmlNodePtr dump (const std::string& cname,
-			     const size_t start_id=0) const;
+    virtual sys::xml_ptr dump (sys::xml_ptr any,
+			       const std::string& cname,
+			       const size_t start_id=0) const;
 
     /**
      * Applies the given PatternOperator to all my Pattern's.
