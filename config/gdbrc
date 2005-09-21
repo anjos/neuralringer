@@ -1,5 +1,0 @@
-file ./test_config
-set args example/xor.xml
-break main
-run
-
