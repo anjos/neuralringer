@@ -279,7 +279,7 @@ sys::XMLProcessor::~XMLProcessor ()
   terminate_xerces();
 }
 
-xercesc::DOMDocument* sys::XMLProcessor::read (const std::string& document)
+xercesc::DOMElement* sys::XMLProcessor::read (const std::string& document)
 {
   xercesc::DOMDocument* domdoc = 0;
   RINGER_DEBUG2("Parsing document \"" << document << "\"...");
@@ -305,17 +305,18 @@ xercesc::DOMDocument* sys::XMLProcessor::read (const std::string& document)
     return 0;
   }
   RINGER_DEBUG2("Document \"" << document << "\" was successfuly parsed.");
-  return domdoc;
+  return domdoc->getDocumentElement();
 }
 
-xercesc::DOMDocument* sys::XMLProcessor::new_document (const std::string& root) const
+xercesc::DOMElement* sys::XMLProcessor::new_document (const std::string& root) const
 {
-  return m_impl->createDocument
+  xercesc::DOMDocument* doc = m_impl->createDocument
     (0, xercesc::XMLString::transcode(root.c_str()), 0);
+  return doc->getDocumentElement();
 }
 
-bool sys::XMLProcessor::write (xercesc::DOMDocument* document,
-				  const std::string& filename)
+bool sys::XMLProcessor::write (xercesc::DOMElement* document,
+			       const std::string& filename)
 {
   RINGER_DEBUG2("Checking existence of \"" << filename << "\" first.");
   if (!sys::backup(filename)) return false;
@@ -324,8 +325,9 @@ bool sys::XMLProcessor::write (xercesc::DOMDocument* document,
     new xercesc::LocalFileFormatTarget(filename.c_str());
   try {
     bool success = m_writer->writeNode
-      (target, *static_cast<const xercesc::DOMNode*>(document));
-    static_cast<xercesc::DOMNode*>(document)->release();
+      (target, 
+       *static_cast<const xercesc::DOMNode*>(document->getOwnerDocument()));
+    static_cast<xercesc::DOMNode*>(document->getOwnerDocument())->release();
     if (!success) {
       RINGER_WARN(m_reporter, "XML DOM Writer indicates an uncatchable error"
 		  << " has occured and it couldn't save your XML file.");
@@ -358,7 +360,7 @@ bool sys::XMLProcessor::write (xercesc::DOMDocument* document,
   RINGER_DEBUG3("Node written to \"" << filename << "\"");
   RINGER_DEBUG3("Trying to parse \"" << filename << "\" against \""
 		<< m_schema << "\" to check integrity.");
-  xercesc::DOMDocument* tempdoc = read(filename);
+  xercesc::DOMElement* tempdoc = read(filename);
   if (tempdoc) {
     RINGER_DEBUG3("File \"" << filename << "\" was successfuly parsed."); 
   }

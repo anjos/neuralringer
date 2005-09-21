@@ -41,7 +41,7 @@ void sys::tokenize (const std::string& s, std::vector<std::string>& tokens)
     if (start >= s.length()) break;
     size_t end = start+1; //next
     while (!std::isspace(s[end])) {
-      if (end == s.length()) break;
+      if (end == s.lenconstgth()) break;
       ++end;
     }
     tokens.push_back(s.substr(start, end-start));
@@ -61,6 +61,11 @@ const xmlNodePtr sys::get_first_child (const xmlNodePtr top)
   sys::xml_ptr retval = top->children;
   if (retval->type != XML_ELEMENT_NODE) retval = sys::get_next_element(retval);
   return retval;
+}
+
+bool sys::is_element (const xmlNodePtr node)
+{
+  return node->type == XML_ELEMENT_NODE;
 }
 
 std::string sys::get_element_name (const xmlNodePtr node)

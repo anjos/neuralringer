@@ -48,20 +48,20 @@ namespace sys {
      *
      * @param document An URI to the document to read
      *
-     * @return a DOMDocument if the document was successfuly parsed or
+     * @return the (root) DOMElement if the document was successfuly parsed or
      * <code>NULL</code> otherwise.
      */
-    xercesc::DOMDocument* read (const std::string& document);
+    xercesc::DOMElement* read (const std::string& document);
 
     /**
      * Creates a new document of the type I set for this processor
      *
      * @param root The name of the root element of the new XML document
      */
-    xercesc::DOMDocument* new_document (const std::string& root) const;
+    xercesc::DOMElement* new_document (const std::string& root) const;
 
     /**
-     * Writes a DOMDocument to a file.
+     * Writes the (root) DOMElement to a file.
      *
      * @param document The document to be persistified. After this operation,
      * the document is released.
@@ -70,8 +70,7 @@ namespace sys {
      * @return <code>true</code> if the document was successfuly persistified
      * or <code>false</node> otherwise.
      */
-    bool write (xercesc::DOMDocument* document, 
-		const std::string& filename);
+    bool write (xercesc::DOMElement* document, const std::string& filename);
 
   private: //< representation
     xercesc::DOMImplementation* m_impl; ///< the DOM implementation to use

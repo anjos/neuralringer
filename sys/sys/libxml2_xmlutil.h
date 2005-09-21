@@ -45,6 +45,13 @@ namespace sys {
   const xmlNodePtr get_first_child (const xmlNodePtr top);
 
   /**
+   * Checks if a node is a valid element
+   *
+   * @param node The node to check
+   */
+  bool is_element (const xmlNodePtr node);
+
+  /**
    * Returns the "translated" name of the given node
    *
    * @param node The node from where to extract the name

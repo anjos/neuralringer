@@ -67,6 +67,11 @@ const xercesc::DOMElement* sys::get_first_child (const xercesc::DOMElement* top)
   return dynamic_cast<const xercesc::DOMElement*>(retval);
 }
 
+bool sys::is_element (const xercesc::DOMElement* node)
+{
+  return node->getNodeType() == xercesc::DOMElement::ELEMENT_NODE;
+}
+
 std::string sys::get_element_name (const xercesc::DOMElement* node)
 {
   return xercesc::XMLString::transcode(node->getTagName());

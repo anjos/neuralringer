@@ -49,6 +49,13 @@ namespace sys {
   const xercesc::DOMElement* get_first_child (const xercesc::DOMElement* top);
 
   /**
+   * Checks if a node is a valid element
+   *
+   * @param node The node to check
+   */
+  bool is_element (const xercesc::DOMElement* node);
+
+  /**
    * Returns the "translated" name of the given node
    *
    * @param node The node from where to extract the name
