@@ -7,7 +7,7 @@ CC=g++
 CXXFLAGS += -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -O2 -DNR_VERSION=\"$(VERSION)\"
 
 # The XML backend to use, can be "xerces" or "libxml2"
-XML_BACK_END = xerces
+XML_BACK_END = libxml2
 
 # How to define the package name
 PACKAGE = $(shell basename `pwd`)
@@ -39,6 +39,8 @@ LIB = $(LIBNAME:%=lib%.so)
 PROGS_CPPFLAGS = -I./installed/include
 ifeq ($(XML_BACK_END),xerces)
  PROGS_CPPFLAGS += -DXERCES_XML_BACK_END
+else
+ PROGS_CPPFLAGS += $(shell xml2-config --cflags)
 endif
 
 # Garbage
