@@ -9,9 +9,11 @@
 #ifndef RINGER_SYS_LIBXML2_CODEC_H
 #define RINGER_SYS_LIBXML2_CODEC_H
 
+#ifndef XERCES_XML_BACK_END
+
 #include <string>
 #include <libxml/encoding.h>
-#include "sys/ustring.h"
+#include "sys/libxml2_ustring.h"
 
 namespace sys {
 
@@ -74,5 +76,6 @@ namespace sys {
 
 }
 
+#endif /* not defined XERCES_XML_BACK_END */
 
 #endif /* RINGER_SYS_LIBXML2_CODEC_H */

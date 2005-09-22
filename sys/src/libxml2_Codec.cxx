@@ -1,10 +1,12 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file sys/src/libxml2_Codec.hxx
+ * @file sys/src/libxml2_Codec.cxx
  *
  * Implements the string converter.
  */
+
+#ifndef XERCES_XML_BACK_END
 
 #include "sys/libxml2_Codec.h"
 #include "sys/debug.h"
@@ -84,3 +86,6 @@ std::string sys::Codec::transcode (const sys::ustring& s) const
 	      << " generated \"" << retval << "\".");
   return retval;
 } 
+
+#endif /* not defined XERCES_XML_BACK_END */
+

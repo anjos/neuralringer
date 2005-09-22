@@ -194,7 +194,7 @@ xmlNodePtr sys::XMLProcessor::new_document (const std::string& root)
   return retval;
 }
 
-bool sys::XMLProcessor::write (const std::string& filename)
+bool sys::XMLProcessor::write (xmlNodePtr, const std::string& filename)
 {
   RINGER_DEBUG2("Checking existence of \"" << filename << "\" first.");
   if (!sys::backup(filename)) return false;

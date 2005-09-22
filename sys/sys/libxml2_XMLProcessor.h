@@ -59,12 +59,14 @@ namespace sys {
     /**
      * Writes an xmlDocPtr to a file.
      *
+     * @param document The document to be persistified. After this operation,
+     * the document is released.
      * @param filename The name of the file where to persistify the document
      *
      * @return <code>true</code> if the document was successfuly persistified
      * or <code>false</code> otherwise.
      */
-    bool write (const std::string& filename);
+    bool write (xmlNodePtr document, const std::string& filename);
 
   private: //< representation
 
