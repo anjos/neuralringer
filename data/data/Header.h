@@ -26,7 +26,7 @@ namespace data {
      *
      * @param node The XML node with the header
      */
-    Header (const sys::xml_ptr node);
+    Header (sys::xml_ptr_const node);
 
     /**
      * Builds a header from scratch

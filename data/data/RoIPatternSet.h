@@ -64,7 +64,7 @@ namespace data {
      *
      * @param node The root node where I'm in
      */
-    RoIPatternSet(const sys::xml_ptr node);
+    RoIPatternSet(sys::xml_ptr_const node);
 
     /**
      * Creates an RoIPatternSet from another RoIPatternSet, by selecting a set

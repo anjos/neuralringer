@@ -31,7 +31,7 @@ data::RoIPatternSet::RoIPatternSet(const data::RoIPatternSet& other)
   RINGER_DEBUG1("Created RoIPatternSet by copying");
 }
 
-data::RoIPatternSet::RoIPatternSet(const sys::xml_ptr node)
+data::RoIPatternSet::RoIPatternSet(sys::xml_ptr_const node)
   : m_set(1, 1),
     m_attr(0)
 {

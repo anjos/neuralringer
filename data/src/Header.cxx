@@ -11,7 +11,7 @@
 #include "sys/util.h"
 #include "sys/debug.h"
 
-data::Header::Header(const sys::xml_ptr node)
+data::Header::Header(sys::xml_ptr_const node)
 {
   sys::xml_ptr_const it = sys::get_next_element(sys::get_first_child(node));
   m_author = sys::get_element_string(it); 

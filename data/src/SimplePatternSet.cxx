@@ -33,7 +33,7 @@ data::SimplePatternSet::SimplePatternSet(const size_t& size,
   RINGER_DEBUG1("SimplePatternSet created and initialised.");
 }
 
-data::SimplePatternSet::SimplePatternSet(const sys::xml_ptr node)
+data::SimplePatternSet::SimplePatternSet(sys::xml_ptr_const node)
   : m_data(0)
 {
   std::vector<Pattern*> data;

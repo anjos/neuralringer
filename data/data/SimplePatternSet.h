@@ -73,7 +73,7 @@ namespace data {
      *
      * @param node The root node where I'm in
      */
-    SimplePatternSet(const sys::xml_ptr node);
+    SimplePatternSet(sys::xml_ptr_const node);
 
     /**
      * Creates a SimplePatternSet from another SimplePatternSet, by selecting

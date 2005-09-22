@@ -255,13 +255,13 @@ data::Database<TSet>::Database (const std::string& filename,
     throw RINGER_EXCEPTION("Cannot parse XML database file");
   }
   
-  sys::xml_ptr top = sys::get_first_child(root);
+  sys::xml_ptr_const top = sys::get_first_child(root);
   //read header info
   m_header = new data::Header(top);
   top = sys::get_next_element(top);
 
   //for all classes
-  for (sys::xml_ptr jt=sys::get_first_child(top); jt; 
+  for (sys::xml_ptr_const jt=sys::get_first_child(top); jt; 
        jt=sys::get_next_element(jt)) {
     if (!sys::is_element(jt)) continue;
     std::string name = sys::get_attribute_string(jt, "name");
@@ -442,7 +442,7 @@ bool data::Database<TSet>::save (const std::string& filename)
   }
   sys::put_node(root, data);
   RINGER_DEBUG2("Finally saving file...");
-  if (!xmlproc.write(filename)) return false;
+  if (!xmlproc.write(root, filename)) return false;
   RINGER_DEBUG2("File \"" << filename << "\" was saved.");
   return true;
 }
