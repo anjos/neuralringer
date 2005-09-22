@@ -10,7 +10,7 @@
 #ifndef CONFIG_PARAMETER_H
 #define CONFIG_PARAMETER_H
 
-#include <libxml/tree.h>
+#include "sys/xmlutil.h"
 
 namespace config {
   
@@ -34,8 +34,11 @@ namespace config {
 
     /**
      * Gets the XML representation for these parameters.
+     *
+     * @param any Any node in the XML document tree where you want to created
+     * you new node.
      */
-    virtual xmlNodePtr node () =0;
+    virtual sys::xml_ptr node (sys::xml_ptr any) =0;
 
   };
 

@@ -7,25 +7,23 @@
  */
 
 #include "config/Header.h"
-#include "sys/xmlutil.h"
 #include "sys/util.h"
 #include "sys/debug.h"
-#include <libxml/tree.h>
 
-config::Header::Header(const xmlNodePtr node)
+config::Header::Header(sys::xml_ptr_const node)
 {
-  xmlNodePtr it = sys::get_next_element(node->children);
+  sys::xml_ptr_const it = sys::get_next_element(sys::get_first_child(node));
   m_author = sys::get_element_string(it); 
   it = sys::get_next_element(it);
-  m_name = sys::get_element_string((xmlNodePtr)it);
+  m_name = sys::get_element_string(it);
   it = sys::get_next_element(it);
-  m_version = sys::get_element_string((xmlNodePtr)it);
+  m_version = sys::get_element_string(it);
   it = sys::get_next_element(it);
-  m_created = sys::get_element_date((xmlNodePtr)it);
+  m_created = sys::get_element_date(it);
   it = sys::get_next_element(it);
-  m_lastSaved = sys::get_element_date((xmlNodePtr)it);
+  m_lastSaved = sys::get_element_date(it);
   it = sys::get_next_element(it);
-  if (it) m_comment = sys::get_element_string((xmlNodePtr)it);
+  if (it) m_comment = sys::get_element_string(it);
   RINGER_DEBUG3("Loaded header information for network \"" << m_name
 	      << "\" version \"" << m_version << "\" from \"" 
 	      << m_author << "\" last saved on \"" 
@@ -79,9 +77,9 @@ config::Header& config::Header::operator= (const Header& other)
   return *this;
 }
 
-xmlNodePtr config::Header::node ()
+sys::xml_ptr config::Header::node (sys::xml_ptr any)
 {
-  xmlNodePtr root = sys::make_node("header");
+  sys::xml_ptr root = sys::make_node(any, "header");
   sys::put_element_text(root, "author", m_author);
   sys::put_element_text(root, "name", m_name);
   sys::put_element_text(root, "version", m_version);

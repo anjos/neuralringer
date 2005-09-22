@@ -11,7 +11,7 @@
 
 #include "config/type.h"
 #include "config/SynapseBackProp.h"
-#include <libxml/tree.h>
+#include "sys/xmlutil.h"
 
 namespace config {
 
@@ -23,8 +23,10 @@ namespace config {
   public:
     /**
      * The XML side constructor
+     *
+     * @param node The node from where to extract the parameters.
      */
-    Synapse (xmlNodePtr node);
+    Synapse (sys::xml_ptr_const node);
 
     /**
      * Constructs a Synapse from scratch
@@ -51,8 +53,10 @@ namespace config {
 
     /**
      * Returns the XML node representation for this Synapse.
+     *
+     * @param any Any node in the XML document.
      */
-    xmlNodePtr node (void);
+    sys::xml_ptr node (sys::xml_ptr any);
 
     /**
      * Dumps the current configuration on this item

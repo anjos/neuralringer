@@ -7,11 +7,10 @@
  */
 
 #include "config/NeuronBackProp.h"
-#include "sys/xmlutil.h"
 #include "sys/debug.h"
 #include "sys/Exception.h"
 
-config::NeuronBackProp::NeuronBackProp(const xmlNodePtr node)
+config::NeuronBackProp::NeuronBackProp(sys::xml_ptr_const node)
 {
   std::string funct = sys::get_attribute_string(node, "activationFunction");
   if (funct == "tanh") {
@@ -56,9 +55,9 @@ config::Parameter* config::NeuronBackProp::clone () const
   return new NeuronBackProp(m_af);
 }
 
-xmlNodePtr config::NeuronBackProp::node ()
+sys::xml_ptr config::NeuronBackProp::node (sys::xml_ptr any)
 {
-  xmlNodePtr root = sys::make_node("backPropagation");
+  sys::xml_ptr root = sys::make_node(any, "backPropagation");
   switch (m_af) {
   case TANH:
     sys::put_attribute_text(root, "activationFunction", "tanh");

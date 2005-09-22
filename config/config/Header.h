@@ -11,7 +11,7 @@
 
 #include <string>
 #include <ctime>
-#include <libxml/tree.h>
+#include "sys/xmlutil.h"
 
 namespace config {
 
@@ -26,7 +26,7 @@ namespace config {
      *
      * @param node The XML node with the header
      */
-    Header (const xmlNodePtr node);
+    Header (sys::xml_ptr_const node);
 
     /**
      * Builds a header from scratch
@@ -64,8 +64,11 @@ namespace config {
 
     /**
      * Returns the libxml representation for this header.
+     *
+     * @param any Any node in the XML tree where you want to create this
+     * node.
      */
-    xmlNodePtr node ();
+    sys::xml_ptr node (sys::xml_ptr any);
 
     /**
      * Returns stuff for this node

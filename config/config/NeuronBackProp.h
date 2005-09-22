@@ -10,6 +10,7 @@
 #define CONFIG_NEURONBACKPROP_H
 
 #include "config/Parameter.h"
+#include "sys/xmlutil.h"
 
 namespace config {
 
@@ -32,7 +33,7 @@ namespace config {
      *
      * @param node The XML node where my parameters are
      */
-    NeuronBackProp(const xmlNodePtr node);
+    NeuronBackProp(sys::xml_ptr_const node);
 
     /**
      * How to start up from simple values
@@ -72,8 +73,11 @@ namespace config {
 
     /**
      * Gets the XML representation for these parameter
+     *
+     * @param any Any node in the XML tree where you want to create this new
+     * node.
      */
-    virtual xmlNodePtr node ();
+    virtual sys::xml_ptr node (sys::xml_ptr any);
 
   private: //representation
 

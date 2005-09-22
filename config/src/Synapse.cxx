@@ -7,7 +7,6 @@
  */
 
 #include "config/Synapse.h"
-#include "sys/xmlutil.h"
 #include "sys/debug.h"
 #include "sys/Exception.h"
 #include "data/RandomInteger.h"
@@ -15,7 +14,7 @@
 
 static data::RandomInteger static_rnd; //default initializer, do it once
 
-config::Synapse::Synapse(xmlNodePtr node)
+config::Synapse::Synapse(sys::xml_ptr_const node)
   : m_params(0)
 {
   m_id = sys::get_attribute_uint(node, "id");
@@ -23,8 +22,8 @@ config::Synapse::Synapse(xmlNodePtr node)
   m_to = sys::get_attribute_uint(node, "to");
 
   //Read initial weight, if exists, or select it randomly between -1 and 1
-  xmlNodePtr c = node->children;
-  if (c->type != XML_ELEMENT_NODE) c = sys::get_next_element(c);
+  sys::xml_ptr_const c = sys::get_first_child(node);
+  if (!sys::is_element(c)) c = sys::get_next_element(c);
   if (sys::get_element_name(c) == "weight") {
     m_weight = sys::get_element_double(c);
     RINGER_DEBUG2("Loaded initial weight for synapse " << m_id
@@ -42,7 +41,7 @@ config::Synapse::Synapse(xmlNodePtr node)
   if (sys::get_element_name(c) == "backPropagation") {
       m_strategy = config::SYNAPSE_BACKPROP;
       m_params = new config::SynapseBackProp(c);
-    }
+  }
   else {
     RINGER_DEBUG1("I cannot find the strategy for synapse "
 		<< m_id << "! Exception thrown.");
@@ -96,13 +95,13 @@ config::Synapse::~Synapse () {
   delete m_params;
 }
 
-xmlNodePtr config::Synapse::node ()
+sys::xml_ptr config::Synapse::node (sys::xml_ptr any)
 {
-  xmlNodePtr root = sys::make_node("synapse");
+  sys::xml_ptr root = sys::make_node(any, "synapse");
   sys::put_attribute_uint(root, "id", m_id);
   sys::put_attribute_uint(root, "from", m_from);
   sys::put_attribute_uint(root, "to", m_to);
   sys::put_element_double(root, "weight", m_weight);
-  xmlAddChild(root, m_params->node());
+  sys::put_node(root, m_params->node(root));
   return root;
 }

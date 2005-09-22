@@ -10,6 +10,7 @@
 #define CONFIG_SYNAPSEBACKPROP_H
 
 #include "config/Parameter.h"
+#include "sys/xmlutil.h"
 
 namespace config {
 
@@ -25,7 +26,7 @@ namespace config {
      *
      * @param node The XML node where my parameters are
      */
-    SynapseBackProp(const xmlNodePtr node);
+    SynapseBackProp(sys::xml_ptr_const node);
 
     /**
      * How to start up from simple values
@@ -80,8 +81,11 @@ namespace config {
 
     /**
      * Gets the XML representation for these parameters.
+     *
+     * @param any Any node on the XML structure you want to create a new
+     * node.
      */
-    virtual xmlNodePtr node ();
+    virtual sys::xml_ptr node (sys::xml_ptr any);
 
   private: //representation
 

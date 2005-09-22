@@ -12,7 +12,7 @@
 
 #include "config/type.h"
 #include "config/Parameter.h"
-#include <libxml/tree.h>
+#include "sys/xmlutil.h"
 
 namespace config {
 
@@ -25,8 +25,11 @@ namespace config {
 
     /**
      * Builds a neuron configuration from an XML DOM node
+     *
+     * @param node The node in the XML tree from where to extract this
+     * neuron's configuration parameters.
      */
-    Neuron (const xmlNodePtr node);
+    Neuron (sys::xml_ptr_const node);
 
     /**
      * Builds a neuron from scratch
@@ -59,8 +62,11 @@ namespace config {
 
     /**
      * Returns the node representation for this Neuron.
+     *
+     * @param any Any node in the XML tree where you would like to create the
+     * new node.
      */
-    xmlNodePtr node ();
+    sys::xml_ptr node (sys::xml_ptr any);
 
     /**
      * Answer stuff about this neuron

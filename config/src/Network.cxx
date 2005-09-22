@@ -13,7 +13,6 @@
 #include "sys/Exception.h"
 #include "sys/util.h"
 #include <cstdlib>
-#include <libxml/tree.h>
 
 config::Network::Network(const std::string& filename,
 			 sys::Reporter& reporter)
@@ -31,35 +30,33 @@ config::Network::Network(const std::string& filename,
   schema += "/network.xsd";
   sys::XMLProcessor xmlproc(schema, m_reporter);
   RINGER_DEBUG2("Trying to parse " << filename);
-  xmlNodePtr root = xmlproc.read(filename);
+  sys::xml_ptr root = xmlproc.read(filename);
   if (!root) {
     RINGER_WARN(m_reporter, "XML network file " << filename 
 	      << " cannot be parsed. Exception thrown.");
     throw RINGER_EXCEPTION("Cannot parse XML network file");
   }
-  for (xmlNodePtr it=root->children; it; it=sys::get_next_element(it)) {
-    if (it->type == XML_ELEMENT_NODE &&
-	sys::get_element_name(it) == "header") {
+  for (sys::xml_ptr_const it=sys::get_first_child(root); it; 
+       it=sys::get_next_element(it)) {
+    if (sys::is_element(it) && sys::get_element_name(it) == "header") {
       //loads the header information
       m_header = new config::Header(it);
       continue;
     }
-    if (it->type == XML_ELEMENT_NODE && 
-	sys::get_element_name(it) == "layout") {
+    if (sys::is_element(it) && sys::get_element_name(it) == "layout") {
       //loads the network layout
       size_t ne = 0;
       size_t sy = 0;
-      for (xmlNodePtr jt=it->children; jt; jt=sys::get_next_element(jt)) {
-	if (jt->type != XML_ELEMENT_NODE) continue;
+      for (sys::xml_ptr_const jt=sys::get_first_child(it); jt; 
+	   jt=sys::get_next_element(jt)) {
+	if (!sys::is_element(jt)) continue;
 	std::string name = sys::get_element_name(jt);
-	if (jt->type == XML_ELEMENT_NODE && (name == "input" ||
-					     name == "bias" ||
-					     name == "hidden" ||
-					     name == "output")) {
+	if (sys::is_element(jt) && (name == "input" || name == "bias" ||
+				    name == "hidden" || name == "output")) {
 	  m_neuron.push_back(new Neuron(jt));
 	  ++ne;
 	}
-	if (jt->type == XML_ELEMENT_NODE && name == "synapse") {
+	if (sys::is_element(jt) && name == "synapse") {
 	  m_synapse.push_back(new Synapse(jt));
 	  ++sy;
 	}
@@ -111,16 +108,16 @@ bool config::Network::save (const std::string& filename)
   }
   schema += "/network.xsd";
   sys::XMLProcessor xmlproc(schema, m_reporter);
-  xmlNodePtr root = xmlproc.new_document("network");
+  sys::xml_ptr root = xmlproc.new_document("network");
   sys::put_attribute_text(root, "version", "0.3");
-  xmlAddChild(root, m_header->node());
-  xmlNodePtr layout = sys::put_element(root, "layout");
+  sys::put_node(root, m_header->node(root));
+  sys::xml_ptr layout = sys::put_element(root, "layout");
   for (std::vector<Neuron*>::iterator it = m_neuron.begin(); 
-       it != m_neuron.end(); ++it) xmlAddChild(layout, (*it)->node());
+       it != m_neuron.end(); ++it) sys::put_node(layout, (*it)->node(layout));
   for (std::vector<Synapse*>::iterator it = m_synapse.begin(); 
-       it != m_synapse.end(); ++it) xmlAddChild(layout, (*it)->node());
+       it != m_synapse.end(); ++it) sys::put_node(layout, (*it)->node(layout));
   RINGER_DEBUG2("Finally saving file...");
-  if (!xmlproc.write(filename)) return false;
+  if (!xmlproc.write(root, filename)) return false;
   RINGER_DEBUG2("File \"" << filename << "\" was saved.");
   return true;
 }

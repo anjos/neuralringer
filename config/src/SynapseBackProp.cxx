@@ -7,10 +7,9 @@
  */
 
 #include "config/SynapseBackProp.h"
-#include "sys/xmlutil.h"
 #include <cstdlib>
 
-config::SynapseBackProp::SynapseBackProp(const xmlNodePtr node)
+config::SynapseBackProp::SynapseBackProp(sys::xml_ptr_const node)
 {
   m_learn_rate = sys::get_attribute_double(node, "learnRate");
   m_momentum = sys::get_attribute_double(node, "momentum");
@@ -47,9 +46,9 @@ config::Parameter* config::SynapseBackProp::clone () const
   return new SynapseBackProp(m_learn_rate, m_momentum, m_learn_rate_decay);
 }
 
-xmlNodePtr config::SynapseBackProp::node ()
+sys::xml_ptr config::SynapseBackProp::node (sys::xml_ptr any)
 {
-  xmlNodePtr root = sys::make_node("backPropagation");
+  sys::xml_ptr root = sys::make_node(any, "backPropagation");
   sys::put_attribute_double(root, "learnRate", m_learn_rate);
   sys::put_attribute_double(root, "momentum", m_momentum);
   sys::put_attribute_double(root, "learnRateDecay", m_learn_rate_decay);
