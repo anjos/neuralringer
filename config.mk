@@ -35,6 +35,12 @@ LDFLAGS  = $(LIBDIR:%=-L%) $(DEPEND:%=-l%) -lpthread
 LIBNAME = $(PACKAGE)
 LIB = $(LIBNAME:%=lib%.so)
 
+# XML back end
+PROGS_CPPFLAGS = -I./installed/include
+ifeq ($(XML_BACK_END),xerces)
+ PROGS_CPPFLAGS += -DXERCES_XML_BACK_END
+endif
+
 # Garbage
 GARB	= $(shell find . -name "*~" -or -name "*.o")
 
@@ -45,7 +51,7 @@ GARB	= $(shell find . -name "*~" -or -name "*.o")
 
 # How to build cxx programs
 prog/%.o: prog/%.cxx
-	$(CC) -I./installed/include $(shell xml2-config --cflags) -D__PACKAGE__=\"$(@:prog/%.o=%)\" $(CXXFLAGS) -c $< -o $@
+	$(CC) $(PROGS_CPPFLAGS) $(PROGS_XML_LDFLAGS) -D__PACKAGE__=\"$(@:prog/%.o=%)\" $(CXXFLAGS) -c $< -o $@
 
 # How to build cxx (C++) files
 %.o: %.cxx
