@@ -1,13 +1,13 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file sys/ustring.h
+ * @file sys/libxml2_ustring.h
  *
  * @brief Defines a string based on a unsigned char type.
  */
 
-#ifndef RINGER_SYS_USTRING_H
-#define RINGER_SYS_USTRING_H
+#ifndef RINGER_SYS_LIBXML2_USTRING_H
+#define RINGER_SYS_LIBXML2_USTRING_H
 
 #include <string>
 #include <locale>
@@ -105,4 +105,4 @@ namespace sys {
 
 
 
-#endif /* RINGER_SYS_USTRING_H */
+#endif /* RINGER_SYS_LIBXML2_USTRING_H */
