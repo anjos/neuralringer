@@ -19,7 +19,7 @@
 sys::xml_ptr_const sys::get_next_element (sys::xml_ptr_const node)
 {
   xercesc::DOMNode* retval = node->getNextSibling();
-  while (retval && node->getNodeType() != xercesc::DOMNode::ELEMENT_NODE)
+  while (retval && retval->getNodeType() != xercesc::DOMNode::ELEMENT_NODE)
     retval = retval->getNextSibling();
   return dynamic_cast<sys::xml_ptr_const>(retval);
 }
@@ -72,7 +72,7 @@ sys::xml_ptr sys::put_node (sys::xml_ptr top,
 			    sys::xml_ptr child)
 {
   top->appendChild(child);
-  return top;
+  return child;
 }
 
 sys::xml_ptr sys::put_element_text (sys::xml_ptr parent, 

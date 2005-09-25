@@ -91,22 +91,22 @@ void validate (xmlSchemaPtr schema, xmlDocPtr xml_doc,
   if (!schema_ctxt) {
     xmlSchemaFreeValidCtxt(schema_ctxt);
     RINGER_WARN(reporter, 
-				"I cannot create a schema context. Exception thrown.");
+		"I cannot create a schema context. Exception thrown.");
     throw RINGER_EXCEPTION("Cannot create schema context");
   }
   xmlSchemaSetValidErrors(schema_ctxt,
-						  (xmlSchemaValidityErrorFunc) fprintf,
-						  (xmlSchemaValidityWarningFunc) fprintf,
-						  stderr);
+			  (xmlSchemaValidityErrorFunc) fprintf,
+			  (xmlSchemaValidityWarningFunc) fprintf,
+			  stderr);
   int ret = xmlSchemaValidateDoc(schema_ctxt, xml_doc);
   xmlSchemaFreeValidCtxt(schema_ctxt);
   if (ret < 0) {
     RINGER_WARN(reporter, "Validation internal API error. Exception thrown.");
-    throw RINGER_EXCEPTION("Validation internal API exception");
+    //throw RINGER_EXCEPTION("Validation internal API exception");
   }
   if (ret) {
     RINGER_WARN(reporter, "Validation failed. Exception thrown.");
-    throw RINGER_EXCEPTION("Invalid XML file");
+    //throw RINGER_EXCEPTION("Invalid XML file");
   }
 }
 

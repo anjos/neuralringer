@@ -17,15 +17,14 @@
 sys::xml_ptr_const sys::get_next_element (sys::xml_ptr_const node)
 {
   sys::xml_ptr retval = node->next;
-  while (retval && sys::is_element(retval)) retval = retval->next;
+  while (retval && !sys::is_element(retval)) retval = retval->next;
   return retval;
 }
 
 sys::xml_ptr_const sys::get_first_child (sys::xml_ptr_const top)
 {
   sys::xml_ptr_const retval = top->children;
-  if (retval->type != XML_ELEMENT_NODE) 
-    retval = sys::get_next_element(retval);
+  if (retval && !sys::is_element(retval)) retval = sys::get_next_element(retval);
   return retval;
 }
 
@@ -42,7 +41,7 @@ std::string sys::get_element_name (sys::xml_ptr_const node)
 std::string sys::get_element_string (sys::xml_ptr_const node)
 {
   RINGER_DEBUG3("Getting string on element \"" << node->name << "\".");
-  sys::xml_ptr_const text = sys::get_first_child(node);
+  sys::xml_ptr_const text = node->children;
   if (text->type == XML_TEXT_NODE)
     return sys::default_codec.transcode
 	    (xmlNodeGetContent(const_cast<sys::xml_ptr>(text)));
@@ -70,7 +69,7 @@ sys::xml_ptr sys::make_node (sys::xml_ptr, const std::string& name)
 sys::xml_ptr sys::put_node (sys::xml_ptr top, sys::xml_ptr child)
 {
   xmlAddChild(top, child);
-  return top;
+  return child;
 }
 
 sys::xml_ptr sys::put_element_text (sys::xml_ptr parent, const std::string& name,
