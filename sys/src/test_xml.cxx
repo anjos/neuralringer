@@ -7,6 +7,7 @@
  */
 
 #include "sys/XMLProcessor.h"
+#include "sys/xmlutil.h"
 #include "sys/Reporter.h"
 #include "sys/Exception.h"
 #include <cstdlib>
@@ -23,7 +24,7 @@ int main (int argc, char** argv)
   }
 
   sys::XMLProcessor xmlproc(argv[1], reporter);
-  xmlNodePtr xmldoc;
+  sys::xml_ptr xmldoc;
   try {
     xmldoc = xmlproc.read(argv[2]);
   }
@@ -41,23 +42,19 @@ int main (int argc, char** argv)
     RINGER_FATAL(reporter, 
 	       "Uncaught exception at top-level! I have to exit. Bye.");
   }
-  /**
   if (xmldoc) {
-    xercesc::DOMElement* root = xmldoc->getDocumentElement();
     std::string message;
     message = "The document root object is \"";
-    message += xercesc::XMLString::transcode(root->getTagName());
+    message += sys::get_element_name(xmldoc);
     message += "\"";
     reporter.report(message);
-    if (root->hasAttribute(xercesc::XMLString::transcode("version"))) {
+    if (sys::get_attribute_string(xmldoc, "version").size() != 0) {
       message = "The schema version is \"";
-      message += xercesc::XMLString::transcode
-	(root->getAttribute(xercesc::XMLString::transcode("version")));
+      message += sys::get_attribute_string(xmldoc, "version");
       message += "\"";
       reporter.report(message);
     }
   }
-  **/
-
+  reporter.report("The document is XML and XML Schema valid.");
   std::exit(1);
 }
