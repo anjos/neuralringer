@@ -2,7 +2,7 @@
 # Andre Rabello <Andre.dos.Anjos@cern.ch>
 
 # Establishes the default system configuration
-VERSION=0.6.0
+VERSION=0.6
 CC=g++
 CXXFLAGS += -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -O2 -DNR_VERSION=\"$(VERSION)\"
 
