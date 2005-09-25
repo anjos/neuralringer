@@ -33,8 +33,13 @@ sys::Reporter::Reporter(const std::string& type)
 
   ///Start-up report: the date
   std::ostringstream oss;
-  oss << "This is the NeuralRinger v" << NR_VERSION << " Reporter, good day.";
+  oss << "This is the NeuralRinger v" << NR_VERSION << " Reporter.";
   report(oss.str());
+#ifdef XERCES_XML_BACK_END
+  report("NeuralRinger was compiled to use Apache's XercesC++.");
+#else
+  report("NeuralRinger was compiled to use Gnome's Libxml2.");
+#endif /* XERCES_XML_BACK_END */
   RINGER_DEBUG1("Debug level 1 is activated.");
   RINGER_DEBUG2("Debug level 2 is activated.");
   RINGER_DEBUG3("Debug level 3 is activated.");
