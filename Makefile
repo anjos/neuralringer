@@ -82,11 +82,11 @@ endif
 dist: clean doc
 	@mv doxy-doc ../$(PACKAGE)-doc-$(VERSION)
 	@cd .. && \
-	 tar cvfj $(PACKAGE)-doc-$(VERSION).tar.bz2 $(PACKAGE)-doc-$(VERSION) && \
+	 tar cfj $(PACKAGE)-doc-$(VERSION).tar.bz2 $(PACKAGE)-doc-$(VERSION) && \
 	 rm -rf $(PACKAGE)-doc-$(VERSION) && cd -
 	@cd .. && mv $(PACKAGE) $(PACKAGE)-$(VERSION) && \
-	 tar cvfj $(PACKAGE)-$(VERSION).tar.bz2 $(PACKAGE)-$(VERSION) \
-	 --exclude='.svn' && \
+	 tar cfj $(PACKAGE)-$(VERSION).tar.bz2 --exclude='.svn' \
+         $(PACKAGE)-$(VERSION) && \
 	 mv $(PACKAGE)-$(VERSION) $(PACKAGE) && cd -
 	@echo $(PACKAGE) distribution and documentation packed
 
