@@ -7,51 +7,64 @@ sinclude config.mk
 
 # Iterates over all packages and build each library/application
 
-PROJECT_DIR	= sys data roiformat rbuild config network
-GARB	= $(shell find . -name "*~" -or -name "*.o")
+PACKAGES=sys data roiformat rbuild config network
+GARB=$(shell find . -name "*~" -or -name "*.o")
+PROG_SRC=ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run
 
-all: build progs
+all: bin
 
-build:
-	$(foreach dir, $(PROJECT_DIR), $(MAKE) -C $(dir) install;)
+lib: 
+	$(foreach pack, $(PACKAGES), $(MAKE) PACKAGE=$(pack) -f makefile.$(pack) all;)
 
-progs: ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run
+bin: lib $(PROG_SRC:%=$(INSTALL_BIN)/%)
 
-ringer: prog/ringer.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/ringer: prog/ringer.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lrbuild -lsys -lpopt $< -o$@
 
-getroi: prog/getroi.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/getroi: prog/getroi.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lroiformat -lpopt $< -o$@
 
-merge: prog/merge.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/merge: prog/merge.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -ldata -lpopt $< -o$@
 
-filter: prog/filter.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/filter: prog/filter.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lroiformat -ldata $< -o$@
 
-xml2text: prog/xml2text.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/xml2text: prog/xml2text.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -ldata -lpopt $< -o$@
 
-mlp-train: prog/mlp-train.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/mlp-train: prog/mlp-train.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lnetwork -lpopt $< -o$@
 
-mlp-run: prog/mlp-run.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/mlp-run: prog/mlp-run.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lnetwork -lpopt $< -o$@
 
-mlp-relevance: prog/mlp-relevance.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/mlp-relevance: prog/mlp-relevance.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lnetwork -lpopt $< -o$@
 
-eta-filter: prog/eta-filter.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/eta-filter: prog/eta-filter.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -ldata -lpopt $< -o$@
 
-relevance-filter: prog/relevance-filter.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/relevance-filter: prog/relevance-filter.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -ldata -lpopt $< -o$@
 
-xml2dot: prog/xml2dot.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/xml2dot: prog/xml2dot.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lnetwork $< -o$@
 
-ringer-run: prog/ringer-run.o
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) $(PROJECT_DIR:%=-l%) -lpopt $< -o$(INSTALL_BIN)/$@
+$(INSTALL_BIN)/ringer-run: prog/ringer-run.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lnetwork -lrbuild -lpopt $< -o$@
 
 doc:
 	@sed -e 's/\([[:space:]]*PROJECT_NUMBER[[:space:]]*\=[[:space:]]*\)[0-9\.]*/\1$(VERSION)/g' Doxyfile > Doxyfile.updated
@@ -59,7 +72,7 @@ doc:
 	@doxygen
 
 install:
-	$(foreach dir, $(PROJECT_DIR), $(MAKE) -C $(dir) install;)
+	$(foreach PACKAGE, $(PACKAGES), $(MAKE) -f makefile.$(PACKAGE) install;)
 
 .PHONY: clean clean-doc dist
 
@@ -70,9 +83,8 @@ clean-doc:
 	@rm -rf doxy-doc
 
 clean:
-	@rm -rf installed
+	@rm -rf $(INSTALL_LIB) $(INSTALL_BIN)
 	@rm -rf doxy-doc
-	$(foreach dir, $(PROJECT_DIR), $(MAKE) -C $(dir) clean;)
 ifeq ($(GARB),)
 	@echo Your current directory is already clean.
 else
