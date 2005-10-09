@@ -7,20 +7,20 @@ sinclude config.mk
 
 # Iterates over all packages and build each library/application
 
-PACKAGES=sys data roiformat rbuild config network
+PKG=sys data roiformat rbuild config network
 GARB=$(shell find . -name "*~" -or -name "*.o")
 PROG_SRC=ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run
 
 all: bin
 
 lib: 
-	$(foreach pack, $(PACKAGES), $(MAKE) PACKAGE=$(pack) -f makefile.$(pack) all;)
+	$(foreach pack, $(PKG), $(MAKE) PKG=$(pack) -f makefile.$(pack) all;)
 
 bin: lib $(PROG_SRC:%=$(INSTALL_BIN)/%)
 
 $(INSTALL_BIN)/ringer: prog/ringer.o
 	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lrbuild -lsys -lpopt $< -o$@
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lrbuild -lpopt $< -o$@
 
 $(INSTALL_BIN)/getroi: prog/getroi.o
 	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
@@ -92,13 +92,13 @@ else
 endif
 
 dist: clean doc
-	@mv doxy-doc ../$(PACKAGE)-doc-$(VERSION)
+	@mv doxy-doc ../$(PROJ)-doc-$(VERSION)
 	@cd .. && \
-	 tar cfj $(PACKAGE)-doc-$(VERSION).tar.bz2 $(PACKAGE)-doc-$(VERSION) && \
-	 rm -rf $(PACKAGE)-doc-$(VERSION) && cd -
-	@cd .. && mv $(PACKAGE) $(PACKAGE)-$(VERSION) && \
-	 tar cfj $(PACKAGE)-$(VERSION).tar.bz2 --exclude='.svn' \
-         $(PACKAGE)-$(VERSION) && \
-	 mv $(PACKAGE)-$(VERSION) $(PACKAGE) && cd -
-	@echo $(PACKAGE) distribution and documentation packed
+	 tar cfj $(PROJ)-doc-$(VERSION).tar.bz2 $(PROJ)-doc-$(VERSION) && \
+	 rm -rf $(PROJ)-doc-$(VERSION) && cd -
+	@cd .. && mv $(PROJ) $(PROJ)-$(VERSION) && \
+	 tar cfj $(PROJ)-$(VERSION).tar.bz2 --exclude='.svn' \
+         $(PROJ)-$(VERSION) && \
+	 mv $(PROJ)-$(VERSION) $(PROJ) && cd -
+	@echo $(PROJ) distribution and documentation packed
 
