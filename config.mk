@@ -15,17 +15,17 @@ INSTALL_LIB=lib
 INSTALL_BIN=bin
 
 # Files and names
-SRCDIR   = sources/$(PACKAGE)
+SRCDIR   = sources/$(PKG)
 LIBDIR   = . $(INSTALL_LIB)
 SRC	 = $(shell find $(SRCDIR) -name "*.cxx" | grep -v "test")
 TSTSRC   = $(shell find $(SRCDIR) -name "test_*.cxx")
 MYTSTSRC = $(shell find $(SRCDIR) -name "mytest_*.cxx")
 INCLUDE	+= neuralringer
 OBJ	 = $(SRC:%.cxx=%.o)
-CPPFLAGS+= $(INCLUDE:%=-I%) -D__PACKAGE__=\"$(PACKAGE)\"
+CPPFLAGS+= $(INCLUDE:%=-I%) -D__PACKAGE__=\"$(PKG)\"
 LDFLAGS  = $(LIBDIR:%=-L%) $(DEPEND:%=-l%) -lpthread
 
-LIBNAME = $(PACKAGE)
+LIBNAME = $(PKG)
 LIB = $(LIBNAME:%=lib%.so)
 
 # XML back end
