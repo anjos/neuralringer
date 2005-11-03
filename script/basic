@@ -1,5 +1,4 @@
 #!/bin/bash 
-# $Id$
 # Created by Andre Rabello dos Anjos <Andre.dos.Anjos@cern.ch>, 08-Jul-2004
 
 # Analyze all rfd files with respect to the xml ring configuration given
@@ -18,7 +17,7 @@ fi
 
 EXECUTABLE=`which ringer`;
 RINGER=`dirname $EXECUTABLE`;
-RINGER=$RINGER/../..;
+RINGER=$RINGER/..;
 
 current=`pwd`;
 echo "[$0] Current directory is \"$current\"";
