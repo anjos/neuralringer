@@ -3,7 +3,7 @@
 
 # Establishes the default system configuration
 PROJ=neuralringer
-VERSION=0.6.2
+VERSION=0.6.3
 CC=g++
 CXXFLAGS += -O2 -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -DNR_VERSION=\"$(VERSION)\"
 
