@@ -118,3 +118,13 @@ bool sys::backup (const std::string& filename)
   return true;
 }
 
+std::string sys::stripname (const std::string& fullname)
+{
+  //find location of last '/'
+  size_t start = fullname.rfind("/");
+  if (start == std::string::npos) start = 0;
+  else ++start;
+    //stopped here
+  size_t end = fullname.rfind(".");
+  return fullname.substr(start, end-start);
+}
