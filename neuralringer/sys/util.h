@@ -85,6 +85,14 @@ namespace sys {
    * @param filename The name of the file to backup
    */
   bool backup (const std::string& filename);
+
+  /**
+   * Returns the basename of a file, without its extension and diretory prefixes
+   * 
+   * @param fullname The name of the file
+   */
+  std::string stripname (const std::string& fullname);
+
 }
 
 #endif /* RINGER_SYS_UTIL_H */
