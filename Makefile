@@ -7,20 +7,24 @@ sinclude config.mk
 
 # Iterates over all packages and build each library/application
 
-PKG=sys data roiformat rbuild config network
+PKGS=sys data roiformat rbuild config network
 GARB=$(shell find . -name "*~" -or -name "*.o")
 PROG_SRC=ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run
 
 all: bin
 
-lib: 
-	$(foreach pack, $(PKG), $(MAKE) PKG=$(pack) -f makefile.$(pack) all;)
+lib: $(PKGS:%=$(INSTALL_LIB)/lib%.so)
 
 bin: lib $(PROG_SRC:%=$(INSTALL_BIN)/%)
 
+$(INSTALL_LIB)/lib%.so: PKG = $(@:$(INSTALL_LIB)/lib%.so=%)
+
+$(INSTALL_LIB)/lib%.so: 
+	$(MAKE) PKG=$(PKG) -f makefile.$(PKG) all
+
 $(INSTALL_BIN)/ringer: prog/ringer.o
 	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lrbuild -lpopt $< -o$@
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lrbuild $< -o$@
 
 $(INSTALL_BIN)/getroi: prog/getroi.o
 	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
@@ -64,7 +68,7 @@ $(INSTALL_BIN)/xml2dot: prog/xml2dot.o
 
 $(INSTALL_BIN)/ringer-run: prog/ringer-run.o
 	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
-	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lnetwork -lrbuild -lpopt $< -o$@
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lnetwork -lrbuild $< -o$@
 
 doc:
 	@sed -e 's/\([[:space:]]*PROJECT_NUMBER[[:space:]]*\=[[:space:]]*\)[0-9\.]*/\1$(VERSION)/g' Doxyfile > Doxyfile.updated

@@ -2,6 +2,7 @@
 # Andre Rabello <Andre.dos.Anjos@cern.ch>
 
 sinclude config.mk
+LDFLAGS += -lpopt
 ifeq ($(XML_BACK_END),xerces)
  CXXFLAGS += -DXERCES_XML_BACK_END
  LDFLAGS += -lxerces-c

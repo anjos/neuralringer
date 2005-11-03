@@ -1,7 +1,7 @@
 # Dear emacs, this is -*- makefile -*-
 # Andre Rabello <Andre.dos.Anjos@cern.ch>
 
-all: $(foreach dep,$(DEPEND),$(INSTALL_LIB)/lib$(dep).so) $(INSTALL_LIB)/$(LIB)
+all: $(INSTALL_LIB)/$(LIB)
 
 $(INSTALL_LIB)/$(LIB): $(OBJ)
 	@[ -d $(INSTALL_LIB) ] || mkdir -pv $(INSTALL_LIB)
