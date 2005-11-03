@@ -17,8 +17,19 @@
 #include "sys/File.h"
 #include <string>
 #include <vector>
+#include <cmath>
 
 namespace roiformat {
+
+  /**
+   * safe PI wrap-around threshold for both egamma and jet objects
+   */
+  const double PI_THRESHOLD = 1.0;
+  
+  /**
+   * 2*PI default value
+   */
+  const double TWO_PI = 2*M_PI;
 
   /**
    * Describes every cell in a calorimeter
@@ -141,6 +152,24 @@ namespace roiformat {
    */
   void max (const std::vector<const Cell*>& vcell, double& eta, double& phi);
 
+  /**
+   * Returns the eta and phi of the cell with highest energy deposition, but
+   * which also falls into the region centered around the reference eta and
+   * phi values given, as large as defined by the window size.
+   * 
+   * @param vcell A vector of constant cells
+   * @param eta The eta value to be returned
+   * @param phi The phi value to be returned
+   * @param eta_ref The center of the reference window
+   * @param phi_ref The center of the reference window
+   * @param eta_window The width of the window in eta direction
+   * @param phi_window The width of the window in phi direction
+   */
+  void max (const std::vector<const roiformat::Cell*>& vcell, 
+	    double& eta, double& phi, const double& eta_ref, 
+	    const double& phi_ref, const double& eta_window, 
+	    const double& phi_window);
+
 }
 
 /** 
@@ -158,5 +187,13 @@ sys::File& operator>> (sys::File& f, roiformat::Cell& c);
  * @param c The cell where to take the data from
  */
 sys::File& operator<< (sys::File& f, const roiformat::Cell& c);
+
+/** 
+ * How to write my own data to a std output stream
+ *
+ * @param os The output stream where I should send my data to
+ * @param c The cell where to take the data from
+ */
+std::ostream& operator<< (std::ostream& os, const roiformat::Cell& c);
 
 #endif /* RINGER_ROIFORMAT_CELL_H */

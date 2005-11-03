@@ -12,17 +12,7 @@
 
 #include "rbuild/RingSet.h"
 #include "sys/debug.h"
-#include <cmath>
-
-/**
- * safe PI wrap-around threshold for both egamma and jet objects (future)
- */
-const double PI_THRESHOLD = 1.0;
-
-/**
- * 2*PI default value
- */
-const double TWO_PI = 2*M_PI;
+#include "roiformat/Cell.h"
 
 rbuild::RingSet::RingSet (const RingConfig& config)
   : m_config(config),
@@ -51,6 +41,13 @@ void rbuild::RingSet::add (const std::vector<const roiformat::Cell*>& c,
   typedef std::vector<const roiformat::Cell*> vec_type;
   typedef std::vector<roiformat::Cell::Sampling> samp_type;
 
+  RINGER_DEBUG1("Starting add procedure for cell vector with " << c.size()
+		<< " entries. The current RingSet is configured for:");
+  //   for (samp_type::const_iterator jt=m_config.detectors().begin();
+  //        jt!=m_config.detectors().end(); ++jt) 
+  //     RINGER_DEBUG3(" ## " << roiformat::sampling2str(*jt));
+  unsigned int fit_counter = 0;
+
   //calculate ranges based on center point given. This is not very optimal and
   //could be made faster by configuring the window in advance.
   std::vector<double> etamax(m_config.max());
@@ -70,17 +67,17 @@ void rbuild::RingSet::add (const std::vector<const roiformat::Cell*>& c,
 		<< "," << phi_center << ")"); 
   //are we, possibly at the wrap-around region for phi?
   bool wrap = false;
-  if (phi_center > (TWO_PI - PI_THRESHOLD)) {
+  if (phi_center > (roiformat::TWO_PI - roiformat::PI_THRESHOLD)) {
       wrap = true;
       RINGER_DEBUG3(phi_center << " is greater than " 
-		    << (TWO_PI - PI_THRESHOLD));
+		    << (roiformat::TWO_PI - roiformat::PI_THRESHOLD));
       RINGER_DEBUG3("Possible Ring window at the phi wrap around"
 		    << " region *DETECTED*.");
   }
   bool reverse_wrap = false;
-  if (phi_center < PI_THRESHOLD) {
+  if (phi_center < roiformat::PI_THRESHOLD) {
       reverse_wrap = true;
-      RINGER_DEBUG3(phi_center << " is smaller than " << PI_THRESHOLD);
+      RINGER_DEBUG3(phi_center << " is smaller than " << roiformat::PI_THRESHOLD);
       RINGER_DEBUG3("Possible (reverse) Ring window at the phi wrap around"
 		    << " region *DETECTED*.");
   }
@@ -109,13 +106,15 @@ void rbuild::RingSet::add (const std::vector<const roiformat::Cell*>& c,
     //anything later, because the sums are already correct!
 
     double phi_use = (*it)->phi(); //use this value for phi (wrap protection)
-    if ( wrap && ((*it)->phi() < M_PI) ) phi_use += TWO_PI;
-    if ( reverse_wrap && ((*it)->phi() > M_PI) ) phi_use -= TWO_PI;
+    if ( wrap && ((*it)->phi() < M_PI) ) phi_use += roiformat::TWO_PI;
+    if ( reverse_wrap && ((*it)->phi() > M_PI) ) phi_use -= roiformat::TWO_PI;
 
     for (size_t i=0; i<m_config.max(); ++i) {
       if ((*it)->eta() > etamin[i] && (*it)->eta() < etamax[i] &&
 	  phi_use > phimin[i] && phi_use < phimax[i]) {
+	RINGER_DEBUG1(**it << " -> falls on ring[" << i << "]");
 	m_val[i] += (*it)->energy();
+	++fit_counter;
 	break;
       }
     } //end for all rings
@@ -123,7 +122,8 @@ void rbuild::RingSet::add (const std::vector<const roiformat::Cell*>& c,
   } //end for all cells
 
   //return happily
-  RINGER_DEBUG2("I just added " << c.size() << " cells to my rings.");
+  RINGER_DEBUG2("A total of " << fit_counter << " (" 
+		<<  (100*fit_counter)/c.size() << " %) cells were pertinent.");
   return;
 }
 

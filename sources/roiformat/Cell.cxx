@@ -66,6 +66,13 @@ sys::File& operator<< (sys::File& f, const roiformat::Cell& c)
   return f;
 }
 
+std::ostream& operator<< (std::ostream& os, const roiformat::Cell& c)
+{
+  os << "{" << sampling2str(c.sampling()) << "; eta = " << c.eta() 
+     << "; phi = " << c.phi() << "; " << " energy = " << c.energy() << " MeV}";
+  return os;
+}
+
 roiformat::Cell::Sampling roiformat::str2sampling (const std::string& s)
 {
   if (s == "PSBARREL") return Cell::PSBARREL;
@@ -199,4 +206,65 @@ void roiformat::max (const std::vector<const roiformat::Cell*>& vcell,
   RINGER_DEBUG3("Peak energy found is " << c->energy() << " MeV.");
   eta = c->eta();
   phi = c->phi();
+}
+
+
+void roiformat::max (const std::vector<const roiformat::Cell*>& vcell, 
+		     double& eta, double& phi, const double& eta_ref, 
+		     const double& phi_ref, const double& eta_window, 
+		     const double& phi_window)
+{
+  double current = 0.0;
+  const roiformat::Cell* c = 0;
+  const double etamin = eta_ref - (0.5 * eta_window);
+  const double etamax = eta_ref + (0.5 * eta_window);
+  const double phimin = phi_ref - (0.5 * phi_window);
+  const double phimax = phi_ref + (0.5 * phi_window);
+
+  //are we, possibly at the wrap-around region for phi?
+  bool wrap = false;
+  if (phi_ref > (TWO_PI - PI_THRESHOLD)) {
+      wrap = true;
+      RINGER_DEBUG3(phi_ref << " is greater than " 
+		    << (TWO_PI - PI_THRESHOLD));
+      RINGER_DEBUG3("Possible Ring window at the phi wrap around"
+		    << " region *DETECTED*.");
+  }
+  bool reverse_wrap = false;
+  if (phi_ref < PI_THRESHOLD) {
+      reverse_wrap = true;
+      RINGER_DEBUG3(phi_ref << " is smaller than " << PI_THRESHOLD);
+      RINGER_DEBUG3("Possible (reverse) Ring window at the phi wrap around"
+		    << " region *DETECTED*.");
+  }
+
+  //get at least the first cell, in case of panic (all zeroes for instance)
+  for (std::vector<const roiformat::Cell*>::const_iterator it = vcell.begin();
+       it != vcell.end(); ++it) {
+    //first we check the location, taking into consideration the
+    //window around the position given
+    double phi_use = (*it)->phi(); //use this value for phi (wrap protection)
+    if ( wrap && ((*it)->phi() < M_PI) ) phi_use += TWO_PI;
+    if ( reverse_wrap && ((*it)->phi() > M_PI) ) phi_use -= TWO_PI;
+    if ((*it)->eta() > etamin && (*it)->eta() < etamax && 
+	  phi_use > phimin && phi_use < phimax) {
+      //if that works, check if this is the first cell to get here, or
+      //actually there is more energy
+      if (!c || (*it)->energy() > current) {
+	c = (*it);
+	current = (*it)->energy();
+      }
+    }
+  }
+  if (!c) {
+    RINGER_DEBUG1("I couldn't find any cell with energy >= 0. Check your " 
+		  << "inputs again. Using EM2 center.");
+    eta = eta_ref;
+    phi = phi_ref;
+  }
+  else {
+    RINGER_DEBUG3("Peak energy found is " << c->energy() << " MeV.");
+    eta = c->eta();
+    phi = c->phi();
+  }
 }
