@@ -7,9 +7,9 @@ sinclude config.mk
 
 # Iterates over all packages and build each library/application
 
-PKGS=sys data roiformat rbuild config network
+PKGS=sys data roiformat lvl1 rbuild config network
 GARB=$(shell find . -name "*~" -or -name "*.o")
-PROG_SRC=ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run
+PROG_SRC=ringer getroi filter merge xml2text mlp-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run lvl1-filter
 
 all: bin
 
@@ -70,6 +70,10 @@ $(INSTALL_BIN)/ringer-run: prog/ringer-run.o
 	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lnetwork -lrbuild $< -o$@
 
+$(INSTALL_BIN)/lvl1-filter: prog/lvl1-filter.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -llvl1 -lroiformat -lsys $< -o$@
+
 doc:
 	@sed -e 's/\([[:space:]]*PROJECT_NUMBER[[:space:]]*\=[[:space:]]*\)[0-9\.]*/\1$(VERSION)/g' Doxyfile > Doxyfile.updated
 	@mv -f Doxyfile.updated Doxyfile
@@ -78,7 +82,7 @@ doc:
 install:
 	$(foreach PACKAGE, $(PACKAGES), $(MAKE) -f makefile.$(PACKAGE) install;)
 
-.PHONY: clean clean-doc dist
+.PHONY: clean clean-doc dist 
 
 edit: clean
 	@emacs `find . -name "*.h" -or -name "*.cxx"` &
