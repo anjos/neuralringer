@@ -13,6 +13,7 @@
 #include "rbuild/RingSet.h"
 #include "sys/debug.h"
 #include "roiformat/Cell.h"
+#include <cmath>
 
 rbuild::RingSet::RingSet (const RingConfig& config)
   : m_config(config),
@@ -120,6 +121,10 @@ void rbuild::RingSet::add (const std::vector<const roiformat::Cell*>& c,
     } //end for all rings
 
   } //end for all cells
+
+  //give us Et instead of E
+  double one_over = 1 / std::cosh(std::fabs(eta_center));
+  for (size_t i=0; i<m_config.max(); ++i) m_val[i] *= one_over;
 
   //return happily
   RINGER_DEBUG2("A total of " << fit_counter << " (" 
