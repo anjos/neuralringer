@@ -76,8 +76,9 @@ template <class TSet> data::NormalizationOperator::NormalizationOperator
     const gsl_vector* v = abuse(e);
     m_mean[i] = gsl_stats_mean(v->data, v->stride, v->size);
     m_sd[i] = gsl_stats_sd(v->data, v->stride, v->size);
-    RINGER_DEBUG3("Database mean for ensemble[" << i << "] is " << m_mean[i]);
-    RINGER_DEBUG3("Database standard deviation for ensemble[" << i 
+    if (m_sd[i] < 1e-5) m_sd[i] = 1; ///to prevent overflowing...
+    RINGER_DEBUG1("Database mean for ensemble[" << i << "] is " << m_mean[i]);
+    RINGER_DEBUG1("Database standard deviation for ensemble[" << i 
 		  << "] is " << m_sd[i]);
   }
 }
