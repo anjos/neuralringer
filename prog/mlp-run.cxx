@@ -25,22 +25,6 @@
 #include <popt.h>
 #include <sstream>
 
-/**
- * Returns the basename of a file, without its extension and diretory prefixes
- * 
- * @param fullname The name of the file
- */
-std::string stripname (const std::string& fullname)
-{
-  //find location of last '/'
-  size_t start = fullname.rfind("/");
-  if (start == std::string::npos) start = 0;
-  else ++start;
-  //stopped here
-  size_t end = fullname.rfind(".xml");
-  return fullname.substr(start, end-start);
-}
-
 typedef struct param_t {
   std::string db; ///< database to use for testing
   std::string net; ///< name of the neural net file
@@ -122,9 +106,9 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
   } 
   p.net = net;
   if (!output) {
-    p.output = stripname(p.db) + ".out.xml";
+    p.output = sys::stripname(p.db) + ".out.xml";
     RINGER_DEBUG1("Setting output file name to " << p.output);
-  } 
+  }
   else p.output = output;
   poptFreeContext(optCon);
 
