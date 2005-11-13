@@ -139,33 +139,33 @@ bool lvl1::EMTrigger::filter (sys::Reporter& rep, const roiformat::RoI& roi) con
 	  phi_use > phimin && phi_use < phimax) {
       //falls in 0.4 by 0.4 region around the center defined in the RoI
       //already! 
-      double transverse_energy = (*it)->energy() / 
-	std::cosh(std::fabs((*it)->eta())); 
+      double energy = (*it)->energy() / std::cosh(std::fabs((*it)->eta())); 
+      //double energy = (*it)->energy();
       if (em_cell) {
 	//Test if this cells falls in one of the cores
 	if ((*it)->eta() < roi.eta() && (*it)->eta() > top_left_eta &&
 	    phi_use > roi.phi() && phi_use < top_left_phi) 
-	  core[0][0] += transverse_energy;
+	  core[0][0] += energy;
 
 	else if ((*it)->eta() > roi.eta() && (*it)->eta() < top_right_eta &&
 		 phi_use > roi.phi() && phi_use < top_right_phi)
-	  core[0][1] += transverse_energy;
+	  core[0][1] += energy;
 
 	else if ((*it)->eta() < roi.eta() && (*it)->eta() > bottom_left_eta &&
 		 phi_use < roi.phi() && phi_use > bottom_left_phi)
-	  core[1][0] += transverse_energy;
+	  core[1][0] += energy;
 
 	else if ((*it)->eta() > roi.eta() && (*it)->eta() < bottom_right_eta &&
 		 phi_use < roi.phi() && phi_use > bottom_right_phi)
-	  core[1][1] += transverse_energy;
+	  core[1][1] += energy;
 
 	else { //falls on neighboring cells!
-	  em_neigh += transverse_energy;
+	  em_neigh += energy;
 	}
 
       }
 
-      else hadronic += transverse_energy;
+      else hadronic += energy;
 
     }
 
