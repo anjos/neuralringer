@@ -99,7 +99,7 @@ else
 	rm -rf $(GARB)
 endif
 
-dist: clean doc
+dist: clean clean-doc doc
 	@mv doxy-doc ../$(PROJ)-doc-$(VERSION)
 	@cd .. && \
 	 tar cfj $(PROJ)-doc-$(VERSION).tar.bz2 $(PROJ)-doc-$(VERSION) && \
