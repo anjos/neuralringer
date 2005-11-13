@@ -291,6 +291,14 @@ namespace data {
     void set_attribute (const size_t& pos, const RoIAttribute& attr);
 
     /**
+     * This method sets a all RoIAttribute's inside the set to a new value,
+     * also given as parameter. The Pattern range is checked.
+     *
+     * @param attr The new attributes for all Pattern's
+     */
+    void set_attribute (const std::vector<RoIAttribute>& attr);
+
+    /**
      * Sets both the features and attributes of a Pattern.
      *
      * @param pos The relative position of the Pattern inside this ensemble
