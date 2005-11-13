@@ -273,6 +273,18 @@ void data::RoIPatternSet::set_attribute
   m_attr[pos] = attr;
 }
 
+void data::RoIPatternSet::set_attribute 
+(const std::vector<data::RoIPatternSet::RoIAttribute>& attr)
+{
+  if (attr.size() != size()) {
+    RINGER_DEBUG1("This set size is " << size() 
+		  << ", but you have me " << attr.size() 
+		  << " attributes to set. Exception thrown.");
+    throw RINGER_EXCEPTION("Different number of attributes to set.");
+  }
+  for (size_t i = 0; i < size(); ++i) set_attribute(i, attr[i]);
+}
+
 void data::RoIPatternSet::set_pattern 
 (const size_t& pos, const data::Pattern& pat,
  const data::RoIPatternSet::RoIAttribute& attr)
