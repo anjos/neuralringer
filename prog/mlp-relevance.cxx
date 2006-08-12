@@ -38,7 +38,8 @@ std::string stripname (const std::string& fullname)
 }
 
 typedef struct param_t {
-  std::string db; ///< database to use for training and testing
+  std::string traindb; ///< database to use for training
+  std::string testdb; ///< database to use for testing
   std::string out; ///< where to save the test set relevance
   data::Feature trainperc; ///< default amount of data to use for tranining
   std::string net; ///< the network file
@@ -55,19 +56,18 @@ typedef struct param_t {
 bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
 {
   //defaults for each option
-  char* db=0;
+  char* traindb=0;
+  char* testdb=0;
   char* out=0;
   char* net=0;
-  data::Feature trainperc=0.5;
 
   //return `arg' is set to !=0, so the system processes everything in the
   //while loop bellow.
   struct poptOption optionsTable[] = {
-    { "train-percentage", 'a', POPT_ARG_DOUBLE, &trainperc, 'a',
-      "how much of the database to use for traning the network",
-      "double, -1.0 < x < 1.0: default is 0.5"}, 
-    { "db", 'd', POPT_ARG_STRING, &db, 'd',
-      "location of the database to use for training and testing", "path" },
+    { "traindb", 'd', POPT_ARG_STRING, &traindb, 'd',
+      "location of the database to use for training", "path" },
+    { "testdb", 'e', POPT_ARG_STRING, &testdb, 'e',
+      "location of the database to use for testing", "path" },
     { "network", 'n', POPT_ARG_STRING, &net, 'n',
       "The network description to use", "path" },
     { "out", 'o', POPT_ARG_STRING, &out, 'o',
@@ -88,15 +88,17 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
   char c;
   while ((c = poptGetNextOpt(optCon)) > 0) {
     switch (c) {
-    case 'a': //train percentage
-      if (trainperc <= -1.0 || trainperc >= 1.0) {
-	RINGER_DEBUG1("Trying to set the training percentage to "<< trainperc);
-	throw RINGER_EXCEPTION("This value should be between (0,1)");
+    case 'd': //traindb
+      RINGER_DEBUG1("Train database name is " << traindb);
+      if (!sys::exists(traindb)) {
+	RINGER_DEBUG1("Train database file " << traindb << " doesn't exist.");
+	throw RINGER_EXCEPTION("Train database file doesn't exist");
       }
-    case 'd': //db
-      RINGER_DEBUG1("Database name is " << db);
-      if (!sys::exists(db)) {
-	RINGER_DEBUG1("Database file " << db << " doesn't exist.");
+      break;
+    case 'e': //testdb
+      RINGER_DEBUG1("Test database name is " << testdb);
+      if (!sys::exists(testdb)) {
+	RINGER_DEBUG1("Database file " << testdb << " doesn't exist.");
 	throw RINGER_EXCEPTION("Database file doesn't exist");
       }
       break;
@@ -122,10 +124,14 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
   }
 
   //checks
-  if (!db) {
-    RINGER_DEBUG1("I cannot work without a database file. Exception thrown.");
-    throw RINGER_EXCEPTION("No database file specified");
-  } else p.db = db;
+  if (!traindb) {
+    RINGER_DEBUG1("I cannot work without a train database file. Exception thrown.");
+    throw RINGER_EXCEPTION("No train database file specified");
+  } else p.traindb = traindb;
+  if (!testdb) {
+    RINGER_DEBUG1("I cannot work without a test database file. Exception thrown.");
+    throw RINGER_EXCEPTION("No test database file specified");
+  } else p.testdb = testdb;
   if (!net) {
     RINGER_DEBUG1("I cannot work without a network file to start from.");
     throw RINGER_EXCEPTION("No network file specified");
@@ -134,7 +140,6 @@ bool checkopt (int& argc, char**& argv, param_t& p, sys::Reporter& reporter)
     p.out = stripname(p.net) + ".relevance.txt";
     RINGER_DEBUG1("Setting output name to " << p.out);
   } else p.out = out;
-  p.trainperc = trainperc;
   poptFreeContext(optCon);
 
   RINGER_DEBUG1("Command line options have been read.");
@@ -156,39 +161,40 @@ int main (int argc, char** argv)
   }
 
   //loads the DB
-  data::Database<data::SimplePatternSet> db(par.db, reporter);
+  data::Database<data::SimplePatternSet> traindb(par.traindb, reporter);
+  data::Database<data::SimplePatternSet> testdb(par.testdb, reporter);
 
   //loads the network
   network::Network net(par.net, reporter);
   bool compressed_output = false;
-  if (net.output_size() < db.size()) compressed_output = true;
+  if (net.output_size() < traindb.size()) compressed_output = true;
   
   //split the data base in train and test
-  data::Database<data::SimplePatternSet>* traindb;
-  data::Database<data::SimplePatternSet>* testdb;
   std::vector<std::string> cnames;
-  db.class_names(cnames);
-  data::RemoveDBMeanOperator rmmean(db);
-  db.apply_pattern_op(rmmean);
-  db.split(par.trainperc, traindb, testdb);
-  RINGER_DEBUG1("Train DB size is " << traindb->size());
-  RINGER_DEBUG1("Test DB size is " << testdb->size());
+  traindb.class_names(cnames);
+
+  RINGER_DEBUG1("Train DB size is " << traindb.size());
+  RINGER_DEBUG1("Test DB size is " << testdb.size());
+
   data::SimplePatternSet train(1, 1);
-  traindb->merge(train);
+  traindb.merge(train);
   RINGER_DEBUG1("Train set size is " << train.size());
   data::SimplePatternSet train_target(1, 1);
-  traindb->merge_target(compressed_output, -1, +1, train_target);
+  traindb.merge_target(compressed_output, -1, +1, train_target);
+
   data::SimplePatternSet test(1, 1);
-  testdb->merge(test);
+  testdb.merge(test);
   RINGER_DEBUG1("Test set size is " << test.size());
   data::SimplePatternSet test_target(1, 1);
-  testdb->merge_target(compressed_output, -1, +1, test_target);
+
+  testdb.merge_target(compressed_output, -1, +1, test_target);
 
   try {
     sys::File out(par.out, std::ios_base::trunc|std::ios_base::out);
     data::SimplePatternSet test_output(test_target);
     data::SimplePatternSet train_output(train_target);
-    out << "input test.relevance train.relevance\n";
+    out << "input test.relevance.mse train.relevance.mse "
+        << "test.relevance.sp train.relevance.sp\n";
     //test set analysis
     net.run(test, test_output);
     net.run(train, train_output);
@@ -198,6 +204,11 @@ int main (int argc, char** argv)
     data::SimplePatternSet train_copy_output(train_target);
     data::Ensemble test_mean(test.size());
     data::Ensemble train_mean(train.size());
+    double eff1 = 0.0;
+    double eff2 = 0.0;
+    double thres = 0.0;
+    double test_sp = data::sp(test_output, test_target, eff1, eff2, thres);
+    double train_sp = data::sp(train_output, train_target, eff1, eff2, thres);
     for (size_t i = 0; i < test.pattern_size(); ++i) {
       RINGER_REPORT(reporter, "Evaluating relevance for feature `" 
 		    << i << "'.");
@@ -211,14 +222,17 @@ int main (int argc, char** argv)
       //run changed copies through the network
       net.run(test_copy, test_copy_output);
       net.run(train_copy, train_copy_output);
-      out << i << " " << data::mse(test_output, test_copy_output) << " "
-	  << data::mse(train_output, train_copy_output) << "\n";
+      out << (unsigned int)i << " " 
+          << data::mse(test_output, test_copy_output) << " "
+          << data::mse(train_output, train_copy_output) << " "
+          << (test_sp - 
+              data::sp(test_copy_output, test_target, eff1, eff2, thres))
+          << " "
+          << (train_sp - 
+              data::sp(train_copy_output, train_target, eff1, eff2, thres))
+          << "\n";
     }
     RINGER_REPORT(reporter, "Cleaning up and exiting...");
-
-    //clear resources
-    delete traindb;
-    delete testdb;
   }
   catch (const sys::Exception& ex) {
     RINGER_EXCEPT(reporter, ex.what());
