@@ -132,26 +132,30 @@ bool network::InputNeuron::dot(std::ostream& os, bool bias, data::Feature bias_v
        it != m_osynapse.end(); ++it) {
     if ((*it)->output()) {
       if (!bias) {
-	os << id() << " -> " << (*it)->output()->id() 
-	   << " [weight=20,label=\"(" << (*it)->id() << ") " 
-	   << (*it)->weight() << "\"] ;" << std::endl;
+        os << "normalization" << id() << " -> " << id() << " [weight=20] ;" << std::endl
+           << "normalization" << id() << " [label=\"(x-" << m_subtract
+           << ")/" << m_divide << "\",arrowtail=dot,shape=box,style=filled,color=darkgreen,fontcolor=white] ;"
+           << std::endl;
+        os << id() << " -> " << (*it)->output()->id()  
+           << " [weight=20,label=\"(" << (*it)->id() << ") " 
+           << (*it)->weight() << "\"] ;" << std::endl;
       } else {
-	os << "subgraph cluster" << id() << counter << " {" << std::endl
-	   << " style = invis;" << std::endl;
-	//<< " label=\"MM\";\n color = lightgrey;\n style = filled;" << std::endl;
-	os << " bias" << id() << counter << " -> " << (*it)->output()->id()
-	   << " [weight=1,constraint=false] ;" << std::endl;
-	os << " bias" << id() << counter 
-	   << " [label=\"(" << id() << ") bias = " << (*it)->weight() * bias_value
-	  //<< " [label=\"bias = " << (*it)->weight() 
-	   << "\",arrowtail=dot,shape=plaintext] ;"
-	   << std::endl << "}" << std::endl;
-	++counter;
+        os << "subgraph cluster" << id() << counter << " {" << std::endl
+           << " style = invis;" << std::endl;
+        //<< " label=\"MM\";\n color = lightgrey;\n style = filled;" << std::endl;
+        os << " bias" << id() << counter << " -> " << (*it)->output()->id()
+           << " [weight=1,constraint=false] ;" << std::endl;
+        os << " bias" << id() << counter 
+           << " [label=\"(" << id() << ") bias = " << (*it)->weight() * bias_value
+          //<< " [label=\"bias = " << (*it)->weight() 
+           << "\",arrowtail=dot,shape=plaintext] ;"
+           << std::endl << "}" << std::endl;
+        ++counter;
       }
       (*it)->output()->dot(os);
     }
   }
   if (!bias) os << id() << " [color=blue,fontcolor=white,style=filled,"
-		<< "shape=circle,width=0.1] ;" << std::endl;  
+                << "shape=circle,width=0.1] ;" << std::endl;  
   return true;
 }
