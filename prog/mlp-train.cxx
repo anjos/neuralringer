@@ -217,11 +217,17 @@ int main (int argc, char** argv)
   std::vector<std::string> cnames;
   db.class_names(cnames);
   db.split(par.trainperc, traindb, testdb);
-  //calculate the normalization factor based on the train set only
-  data::NormalizationOperator norm_op(*traindb);
   RINGER_DEBUG1("Train set size is " << traindb->size());
   RINGER_DEBUG1("Test set size is " << testdb->size());
   
+  //tune input DB's for size/randomness
+  data::Database<data::RoIPatternSet> 
+    traindb2(*traindb); //save original train database
+  traindb->normalise();
+  //calculate the normalization factor based on the train set, but only after
+  //size normalization
+  data::NormalizationOperator norm_op(*traindb);
+
   //checks db size
   if (db.size() < 2) {
     RINGER_FATAL(reporter, "The database you loaded contains only 1 class of"
@@ -253,10 +259,6 @@ int main (int argc, char** argv)
 		   sstrat, ssparam, norm_op.mean(), norm_op.stddev(), 
 		   reporter);
 
-  //tune input DB's for size/randomness
-  data::Database<data::RoIPatternSet> 
-    traindb2(*traindb); //save original train database
-  traindb->normalise();
   data::RoIPatternSet train(1, 1);
   traindb->merge(train);
   RINGER_REPORT(reporter, "Normalised train set size is " << train.size());
@@ -319,8 +321,8 @@ int main (int argc, char** argv)
 	  if (db.size() == 2)
 	    sp_val = data::sp(output, test_target, eff1_test, eff2_test, thres_test);
 	  double mse_val = data::mse(output, test_target.simple());
-	  mseevo << i << " " << mse_val;
-	  spevo << i << " " << sp_val;
+	  mseevo << (unsigned int)i << " " << mse_val;
+	  spevo << (unsigned int)i << " " << sp_val;
 	  prev = val;
 	  if (!par.msestop) val = sp_val;
 	  else val = mse_val;
