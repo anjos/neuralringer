@@ -30,7 +30,8 @@
 #include <sstream>
 
 typedef struct param_t {
-  std::string db; ///< database to use for training and testing
+  std::string traindb; ///< database to use for training
+  std::string testdb; ///< database to use for testing
   std::string startnet; ///< name of the starting neural net file
   std::string endnet; ///< name of the ending neural net file
   std::string mseevo; ///< where to save the neural network MSE evolution
@@ -42,7 +43,6 @@ typedef struct param_t {
   data::Feature lrate; ///< learning rate to use
   data::Feature lrdecay; ///< learning rate decay
   data::Feature momentum; ///< momentum
-  data::Feature trainperc; ///< default amount of data to use for tranining
   bool msestop; ///< use MSE product stop criteria instead of SP stabilisation
   bool compress; ///< if I should use compressed or extended output 
   long int stopiter; ///< number of iterations w/o variance to stop
@@ -59,17 +59,21 @@ typedef struct param_t {
  */
 bool checkopt (param_t& par, sys::Reporter& reporter)
 {
-  if (par.trainperc <= -1.0 || par.trainperc >= 1.0) {
-    RINGER_DEBUG1("Trying to set the training percentage to "<< par.trainperc);
-    throw RINGER_EXCEPTION("This value should be between (-1,1)");
+  if (!par.traindb.size()) {
+    RINGER_DEBUG1("No train DB file given! Throwing...");
+    throw RINGER_EXCEPTION("Train Database file not given.");
   }
-  if (!par.db.size()) {
-    RINGER_DEBUG1("No DB file given! Throwing...");
-    throw RINGER_EXCEPTION("Database file not given.");
+  if (!par.testdb.size()) {
+    RINGER_DEBUG1("No test DB file given! Throwing...");
+    throw RINGER_EXCEPTION("Test Database file not given.");
   }
-  if (!sys::exists(par.db)) {
-    RINGER_DEBUG1("Database file " << par.db << " doesn't exist.");
-    throw RINGER_EXCEPTION("Database file doesn't exist");
+  if (!sys::exists(par.traindb)) {
+    RINGER_DEBUG1("Train Database file " << par.traindb << " doesn't exist.");
+    throw RINGER_EXCEPTION("Train Database file doesn't exist");
+  }
+  if (!sys::exists(par.testdb)) {
+    RINGER_DEBUG1("Test Database file " << par.testdb << " doesn't exist.");
+    throw RINGER_EXCEPTION("Test Database file doesn't exist");
   }
   if (par.momentum < 0 || par.momentum >= 1.0) {
     RINGER_DEBUG1("Trying to set the momentum to " << par.momentum);
@@ -92,27 +96,27 @@ bool checkopt (param_t& par, sys::Reporter& reporter)
     throw RINGER_EXCEPTION("Stop threshold is less than zero");
   }
   if (!par.startnet.size()) {
-    par.startnet = sys::stripname(par.db) + ".start.xml";
+    par.startnet = sys::stripname(par.traindb) + ".start.xml";
     RINGER_DEBUG1("Setting start file name to " << par.startnet);
   }
   if (!par.endnet.size()) {
-    par.endnet = sys::stripname(par.db) + ".end.xml";
+    par.endnet = sys::stripname(par.traindb) + ".end.xml";
     RINGER_DEBUG1("Setting end file name to " << par.endnet);
   }
   if (!par.energy.size()) {
-    par.energy = sys::stripname(par.db) + ".energy.xml";
+    par.energy = sys::stripname(par.traindb) + ".energy.xml";
     RINGER_DEBUG1("Setting transverse energy file name to " << par.energy);
   }
   if (!par.mseevo.size()) {
-    par.mseevo = sys::stripname(par.db) + ".mse.txt";
+    par.mseevo = sys::stripname(par.traindb) + ".mse.txt";
     RINGER_DEBUG1("Setting MSE evolution file name to " << par.mseevo);
   }
   if (!par.spevo.size()) {
-    par.spevo = sys::stripname(par.db) + ".sp.txt";
+    par.spevo = sys::stripname(par.traindb) + ".sp.txt";
     RINGER_DEBUG1("Setting SP evolution file name to " << par.spevo);
   }
   if (!par.output.size()) {
-    par.output = sys::stripname(par.db) + ".out.xml";
+    par.output = sys::stripname(par.traindb) + ".out.xml";
     RINGER_DEBUG1("Setting output file name to " << par.output);
   }
   if (!par.nhidden) {
@@ -137,13 +141,10 @@ int main (int argc, char** argv)
 {
   sys::Reporter reporter("local");
 
-  param_t par = { "", "", "", "", "", "", "",
-		  0, 1, 0.1, 1.0, 0.0, 0.5, false, false,
-		  100, 0.001, 5, 0 };
+  param_t par = { "", "", "", "", "", "", "", "",
+                  4, 50, 0.1, 1.0, 0.01, false, false,
+                  50, 0.001, 10, 10000 };
   sys::OptParser opt_parser(argv[0]);
-  opt_parser.add_option
-    ("train-percentage", 'a', par.trainperc,
-     "how much of the database to use for traning the network");
   opt_parser.add_option
     ("hard-stop", 'b', par.hardstop,
      "number of epochs after which to hard stop the training session");
@@ -151,8 +152,8 @@ int main (int argc, char** argv)
     ("epoch", 'c', par.epoch,
      "how many entries per training step should I use");
   opt_parser.add_option
-    ("db", 'd', par.db,
-     "location of the database to use for training and testing");
+    ("traindb", 'd', par.traindb,
+     "location of the database to use for training");
   opt_parser.add_option
     ("end-net", 'e', par.endnet, 
      "where to write the last network");
@@ -190,6 +191,9 @@ int main (int argc, char** argv)
     ("mse-stop", 't', par.msestop,
      "if I should use MSE stop criteria instead of SP (default)");
   opt_parser.add_option
+    ("testdb", 'u', par.testdb,
+     "location of the database to use for testing");
+  opt_parser.add_option
     ("stop-threshold", 'w', par.stopthres,
      "the stop threshold to consider for flagging a potential stop");
   opt_parser.add_option
@@ -210,32 +214,29 @@ int main (int argc, char** argv)
   }
 
   //loads the DB
-  data::Database<data::RoIPatternSet> db(par.db, reporter);
-  //splits the database in train and test
-  data::Database<data::RoIPatternSet>* traindb;
-  data::Database<data::RoIPatternSet>* testdb;
+  data::Database<data::RoIPatternSet> traindb(par.traindb, reporter);
+  data::Database<data::RoIPatternSet> testdb(par.testdb, reporter);
   std::vector<std::string> cnames;
-  db.class_names(cnames);
-  db.split(par.trainperc, traindb, testdb);
-  RINGER_DEBUG1("Train set size is " << traindb->size());
+  traindb.class_names(cnames);
   RINGER_DEBUG1("Test set size is " << testdb->size());
   
   //tune input DB's for size/randomness
   data::Database<data::RoIPatternSet> 
-    traindb2(*traindb); //save original train database
-  traindb->normalise();
+    traindb2(traindb); //save original train database
+  traindb.normalise();
   //calculate the normalization factor based on the train set, but only after
   //size normalization
-  data::NormalizationOperator norm_op(*traindb);
+  data::NormalizationOperator norm_op(traindb);
+  RINGER_DEBUG1("Train set size is " << traindb2->size());
 
   //checks db size
-  if (db.size() < 2) {
+  if (traindb.size() < 2) {
     RINGER_FATAL(reporter, "The database you loaded contains only 1 class of"
 		 " events. Please, reconsider your input file.");
   }
 
   //checks one more thing
-  if (db.size() > 2 && !par.msestop) {
+  if (traindb.size() > 2 && !par.msestop) {
     RINGER_FATAL(reporter, "I cannot use the SP product with in a multi"
 		 "-class scenario. Please, either re-program me or reconsider"
 		 " your options.");
@@ -252,22 +253,22 @@ int main (int argc, char** argv)
   config::Parameter* ssparam =
     new config::SynapseBackProp(par.lrate, par.momentum, par.lrdecay);
   std::vector<bool> biaslayer(2, true);
-  unsigned int nout = db.size();
-  if (par.compress) nout = lrint(std::ceil(log2(db.size())));
-  network::MLP net(db.pattern_size(), hlayer, nout,
+  unsigned int nout = traindb.size();
+  if (par.compress) nout = lrint(std::ceil(log2(traindb.size())));
+  network::MLP net(traindb.pattern_size(), hlayer, nout,
 		   biaslayer, nstrat, nsparam, nstrat, nsparam,
 		   sstrat, ssparam, norm_op.mean(), norm_op.stddev(), 
 		   reporter);
 
   data::RoIPatternSet train(1, 1);
-  traindb->merge(train);
+  traindb.merge(train);
   RINGER_REPORT(reporter, "Normalised train set size is " << train.size());
   data::RoIPatternSet train2(1, 1);
   traindb2.merge(train2);
   RINGER_REPORT(reporter, "Original train set size is " << train2.size());
   RINGER_DEBUG1("Train set size is " << train.size());
   data::RoIPatternSet target(1, 1);
-  traindb->merge_target(par.compress, -1, +1, target);
+  traindb.merge_target(par.compress, -1, +1, target);
   RINGER_REPORT(reporter, "Normalized train target set size is " 
 		<< target.size());
   data::RoIPatternSet target2(1, 1);
@@ -276,10 +277,10 @@ int main (int argc, char** argv)
 		<< target2.size());
   RINGER_DEBUG1("Train target set size is " << target.size());
   data::RoIPatternSet test(1, 1);
-  testdb->merge(test);
+  testdb.merge(test);
   RINGER_DEBUG1("Test set size is " << test.size());
   data::RoIPatternSet test_target(1, 1);
-  testdb->merge_target(par.compress, -1, +1, test_target);
+  testdb.merge_target(par.compress, -1, +1, test_target);
   RINGER_DEBUG1("Test target set size is " << test_target.size());
   
   try {
@@ -318,7 +319,7 @@ int main (int argc, char** argv)
 	  output = test_target.simple();
 	  net.run(test.simple(), output);
 	  double sp_val;
-	  if (db.size() == 2)
+	  if (traindb.size() == 2)
 	    sp_val = data::sp(output, test_target, eff1_test, eff2_test, thres_test);
 	  double mse_val = data::mse(output, test_target.simple());
 	  mseevo << (unsigned int)i << " " << mse_val;
@@ -353,7 +354,7 @@ int main (int argc, char** argv)
 	  //train set analysis
 	  net.run(train2.simple(), output);
 	  double sp_val;
-	  if (db.size() == 2) 
+	  if (traindb.size() == 2) 
 	    sp_val = data::sp(output, target2, eff1, eff2, thres);
 	  double mse_val = data::mse(output, target2.simple());
 	  mseevo << " " << mse_val << "\n";
@@ -392,7 +393,7 @@ int main (int argc, char** argv)
     double train_eff1 = 0;
     double train_eff2 = 0;
     double train_thres = 0;
-    if (db.size() == 2) 
+    if (traindb.size() == 2) 
       sp_train = data::sp(train_output, target2, train_eff1, train_eff2, 
 			  train_thres);
     data::SimplePatternSet simple_test_output(target.simple());
@@ -403,8 +404,8 @@ int main (int argc, char** argv)
     double test_eff1 = 0;
     double test_eff2 = 0;
     double test_thres = 0;
-    if (db.size() == 2) sp_test = data::sp(test_output, test_target,
-					   test_eff1, test_eff2, test_thres);
+    if (traindb.size() == 2) sp_test = data::sp(test_output, test_target,
+                                                test_eff1, test_eff2, test_thres);
 
     //energy estimations
     data::RoIPatternSet train_energy(train_output.size(), 1);
@@ -432,11 +433,11 @@ int main (int argc, char** argv)
     data["test-target"] = &test_target;
     data["test-energy"] = &test_energy;
     std::ostringstream comment;
-    comment << "Outputs from training session based on " << par.db << ". "
+    comment << "Outputs from training session based on " << par.traindb << ". "
 	    << "Train set MSE = " << mse_train;
-    if (db.size() == 2) comment << " and SP = " << sp_train;
+    if (traindb.size() == 2) comment << " and SP = " << sp_train;
     comment << ". Test set MSE = " << mse_test;
-    if (db.size() == 2) comment << " and SP = " << sp_test;
+    if (testdb.size() == 2) comment << " and SP = " << sp_test;
     comment << ".";
     data::Header header("Andre DOS ANJOS", par.output, "1.0", time(0),
 			comment.str());
@@ -447,12 +448,12 @@ int main (int argc, char** argv)
 
 
     //print summary:
-    if (db.size() == 2) {
+    if (traindb.size() == 2) {
       RINGER_REPORT(reporter, "Summary for " << cnames[0] << "/" << cnames[1]
 		    << " discrimination with an MLP network:");
     }
     RINGER_REPORT(reporter, comment.str());
-    if (db.size() == 2) { //print SP statistics
+    if (traindb.size() == 2) { //print SP statistics
       RINGER_REPORT(reporter, "Train set gives, for threshold="
 		    << train_thres << " -> " << cnames[0]
 		    << " eff=" << train_eff1*100 << "% and " << cnames[1]
@@ -462,10 +463,6 @@ int main (int argc, char** argv)
 		    << " eff=" << test_eff1*100 << "% and " << cnames[1]
 		    << " eff=" << test_eff2*100 << "%.");
     }
-
-    //clear resources
-    delete traindb;
-    delete testdb;
   }
   catch (const sys::Exception& ex) {
     RINGER_EXCEPT(reporter, ex.what());
