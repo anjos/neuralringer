@@ -142,7 +142,7 @@ int main (int argc, char** argv)
   sys::Reporter reporter("local");
 
   param_t par = { "", "", "", "", "", "", "", "",
-                  4, 50, 0.1, 1.0, 0.01, false, false,
+                  4, 50, 0.1, 1.0, 0.01, false, true,
                   50, 0.001, 10, 10000 };
   sys::OptParser opt_parser(argv[0]);
   opt_parser.add_option
