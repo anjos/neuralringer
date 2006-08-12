@@ -11,8 +11,8 @@
 </header>
 
 <layout>
-  <input id="1"></input>
-  <input id="2"></input>
+  <input id="1" subtract="0.0" divide="1.0"></input>
+  <input id="2" subtract="0.0" divide="1.0"></input>
   <bias id="3" bias="1"></bias>
   <hidden id="4">
    <backPropagation activationFunction="tanh" />
