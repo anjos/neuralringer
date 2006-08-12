@@ -5,7 +5,7 @@
 PROJ=neuralringer
 VERSION=0.7.2
 CC=g++
-CXXFLAGS += -O2 -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -DNR_VERSION=\"$(VERSION)\"
+CXXFLAGS += -g -DRINGER_DEBUG=3 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -DNR_VERSION=\"$(VERSION)\"
 
 # The XML backend to use, can be "xerces" or "libxml2"
 XML_BACK_END = libxml2

@@ -218,7 +218,7 @@ int main (int argc, char** argv)
   data::Database<data::RoIPatternSet> testdb(par.testdb, reporter);
   std::vector<std::string> cnames;
   traindb.class_names(cnames);
-  RINGER_DEBUG1("Test set size is " << testdb->size());
+  RINGER_DEBUG1("Test set size is " << testdb.size());
   
   //tune input DB's for size/randomness
   data::Database<data::RoIPatternSet> 
@@ -227,7 +227,7 @@ int main (int argc, char** argv)
   //calculate the normalization factor based on the train set, but only after
   //size normalization
   data::NormalizationOperator norm_op(traindb);
-  RINGER_DEBUG1("Train set size is " << traindb2->size());
+  RINGER_DEBUG1("Train set size is " << traindb2.size());
 
   //checks db size
   if (traindb.size() < 2) {

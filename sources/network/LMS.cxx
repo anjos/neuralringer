@@ -47,7 +47,7 @@ network::LMS::LMS (const size_t input,
                    sys::Reporter& reporter)
   : network::Network(reporter)
 {
-  RINGER_DEBUG2("Creating simple LMS discriminator " << input << "-" << output 
+  RINGER_DEBUG2("Creating simple LMS discriminator " << input << "-1" 
 	      << "...");
   std::vector<network::Neuron*> neurons; //all neurons, unorganized
 
