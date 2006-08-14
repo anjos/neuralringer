@@ -95,8 +95,8 @@ int main (int argc, char** argv)
   std::vector<std::string> cnames;
   db.class_names(cnames);
   db.split(par.percentage, traindb, testdb);
-  RINGER_DEBUG1("Train set size is " << traindb->size());
-  RINGER_DEBUG1("Test set size is " << testdb->size());
+  RINGER_REPORT(reporter, "Train set size is " << traindb->size());
+  RINGER_REPORT(reporter, "Test set size is " << testdb->size());
 
   traindb->save(par.out1);
   RINGER_REPORT(reporter, "Output file \"" << par.out1
