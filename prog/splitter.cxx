@@ -105,6 +105,8 @@ int main (int argc, char** argv)
     for (size_t i = 0; i < it->second->size();) {
       data::SumExtractor sum;
       if ( sum(it->second->pattern(i)) > par.energy_cut ) {
+        RINGER_REPORT(reporter, "Erasing pattern " << i << " from " 
+                      << it->first << " set.");
         const_cast<data::RoIPatternSet*>(it->second)->erase_pattern(i);
       }
       else ++i;
