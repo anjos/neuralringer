@@ -76,6 +76,8 @@ int main (int argc, char** argv)
     ("out1", 't', par.out1, "name of the first output file");
   opt_parser.add_option
     ("out2", 'u', par.out2, "name of the second output file");
+  opt_parser.parse(argc, argv);
+
   try {
     if (!checkopt(par, reporter))
       RINGER_FATAL(reporter, "Terminating execution.");
