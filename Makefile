@@ -9,7 +9,7 @@ sinclude config.mk
 
 PKGS=sys data roiformat lvl1 rbuild config network
 GARB=$(shell find . -name "*~" -or -name "*.o")
-PROG_SRC=ringer getroi filter merge xml2text mlp-train lms-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run lvl1-filter
+PROG_SRC=ringer getroi filter merge xml2text mlp-train lms-train mlp-relevance eta-filter relevance-filter xml2dot mlp-run ringer-run lvl1-filter splitter
 
 all: bin
 
@@ -31,6 +31,10 @@ $(INSTALL_BIN)/getroi: prog/getroi.o
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -lroiformat -lpopt $< -o$@
 
 $(INSTALL_BIN)/merge: prog/merge.o
+	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
+	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -ldata -lpopt $< -o$@
+
+$(INSTALL_BIN)/splitter: prog/splitter.o
 	@[ -d $(INSTALL_BIN) ] || mkdir -pv $(INSTALL_BIN)
 	$(CC) $(CXXFLAGS) -L$(INSTALL_LIB) -ldata -lpopt $< -o$@
 
