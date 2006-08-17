@@ -58,7 +58,8 @@ bool roiformat::Database::load (const std::string& f, unsigned int start,
     if ( it != m_rois.end() ) {
       submap_type::iterator jt = it->second.find(r.roi_id());
       if ( jt != it->second.end() ) {
-	RINGER_DEBUG1("Discarding duplicated RoI at file \"" << f 
+	RINGER_REPORT(m_reporter, 
+		      "Discarding duplicated RoI at file \"" << f 
 		      << "\" {LVL1 ID=" << r.lvl1_id() << ", RoI ID=" 
 		      << r.roi_id() << "}");
 	++ignored;
