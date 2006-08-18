@@ -3,9 +3,9 @@
 
 # Establishes the default system configuration
 PROJ=neuralringer
-VERSION=0.7.3
+VERSION=0.7.4
 CC=g++
-CXXFLAGS += -O2 -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -DNR_VERSION=\"$(VERSION)\"
+CXXFLAGS += -O2 -DRINGER_DEBUG=0 -D_GNU_SOURCE --ansi --pedantic -Wall -pthread -fPIC -DNR_VERSION=\"$(VERSION)\" -DRINGER_VERBOSE=0
 
 # The XML backend to use, can be "xerces" or "libxml2"
 XML_BACK_END = libxml2

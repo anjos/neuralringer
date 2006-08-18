@@ -101,12 +101,26 @@ namespace sys {
 }
 
 /**
+ * Make sure that we have verbose on if the user does not specify
+ * anything else. If VERBOSE is set to 1 or above, warnings
+ * messages are printed. If above or equal 2, report messages are
+ * also printed. Fatal and exceptions messages are always printed.
+ */
+#ifndef RINGER_VERBOSE
+#define RINGER_VERBOSE 2
+#endif
+
+/**
  * Defines a simpler way to report messages
  */
+#if (RINGER_VERBOSE>=2) 
 #define RINGER_REPORT(r,m) { \
     std::ostringstream s;  \
     s << m;                \
     r.report(s.str());	   }
+#else
+#define RINGER_REPORT(r,m)
+#endif
 
 /**
  * Defines a simpler way to report messages
@@ -127,10 +141,15 @@ namespace sys {
 /**
  * Defines a simpler way to report messages
  */
+#if (RINGER_VERBOSE>=1)
 #define RINGER_WARN(r,m) { \
     std::ostringstream s;  \
     s << m;                \
     r.warn(s.str());	   }
+#else
+#define RINGER_WARN(r,m)
+#endif
+
 
 #endif /* RINGER_SYS_REPORTER_H */ 
 
