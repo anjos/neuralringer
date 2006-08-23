@@ -14,7 +14,6 @@
 #include "sys/Plain.h"
 #include "sys/debug.h"
 #include "sys/Exception.h"
-#include "sys/util.h"
 
 sys::File::File (const std::string& filename, std::ios_base::openmode m,
 		 const char sep)
@@ -36,8 +35,6 @@ sys::File::File (const std::string& filename, std::ios_base::openmode m,
   }
   else { //try as a plain file!
     try {
-      if (!sys::backup(filename))
-	throw RINGER_EXCEPTION("Cannot move an existing version of the file!");
       m_fimpl = new sys::Plain(filename, m);
       RINGER_DEBUG3("Plain file \"" << filename << "\" opened successfuly.");
     }
