@@ -107,7 +107,7 @@ sys::xml_ptr sys::put_element_double (sys::xml_ptr parent, const std::string& na
 				      const double& content)
 {
   std::ostringstream os;
-  os << content;
+  os << std::scientific << content;
   return put_element_text(parent, name, os.str());
 }
 
@@ -123,7 +123,7 @@ sys::xml_ptr sys::put_attribute_double (sys::xml_ptr e, const std::string& name,
 					const double& value)
 {
   std::ostringstream os;
-  os << value;
+  os << std::scientific << value;
   return put_attribute_text(e, name, os.str());
 }
 
@@ -132,6 +132,7 @@ sys::xml_ptr sys::put_element_doubles (sys::xml_ptr root,
 				       const std::vector<double>& content)
 {
   std::ostringstream oss;
+  oss << std::scientific;
   for (size_t i=0; i<content.size()-1; ++i) oss << content[i] << " ";
   oss << content[content.size()-1];
   return put_element_text(root, name, oss.str());

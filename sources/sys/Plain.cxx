@@ -10,6 +10,7 @@
  * Implements the plain text file readout
  */
 
+#include <iomanip>
 #include "sys/Plain.h"
 #include "sys/debug.h"
 #include "sys/Exception.h"
@@ -24,6 +25,10 @@ sys::Plain::Plain (const std::string& filename,
 		  << "\". Exception thrown.");
     throw RINGER_EXCEPTION("Cannot open file.");
   }
+
+  //The output file has a default scientific notation for doubles
+  m_file << std::scientific << std::setprecision(10);
+  
   RINGER_DEBUG3("File \"" << m_filename << "\" opened successfuly.");
 }
 
