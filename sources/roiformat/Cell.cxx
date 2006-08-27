@@ -28,6 +28,10 @@ roiformat::Cell::Cell (Sampling sampling, const double& eta,
     m_dr(dr),
     m_energy(energy)
 {
+  //correct for the cases where values of phi are between -PI and +PI instead
+  //of between 0 and 2*PI
+  if (m_phi < 0) m_phi += 2*M_PI;
+
   RINGER_DEBUG3("New cell (scratch) {" << m_samp << "," << m_eta << ","
 		<< m_phi << "," << m_r << "," << m_deta << "," << m_dphi
 		<< "," << m_dr << "," << m_energy << "}");
