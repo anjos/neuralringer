@@ -193,6 +193,7 @@ int main (int argc, char** argv)
       gettimeofday(&start_time, 0);
       double eta, phi; //center values
       bool ok = rbuild::find_center(reporter, *it, eta, phi);
+      ok &= par.global_center;
       gettimeofday(&peak_time, 0);
       rbuild::build_rings(reporter, *it, rset, ok, eta, phi, 
 			  par.eta_window, par.phi_window);
