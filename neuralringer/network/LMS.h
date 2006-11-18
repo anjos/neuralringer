@@ -45,7 +45,6 @@ namespace network {
      * @param reporter The reporter to inform about changes or errors.
      */
     LMS (const size_t input,
-         const data::Feature& learn_rate,
          const data::Pattern& input_subtract,
          const data::Pattern& input_divide,
          sys::Reporter& reporter);

@@ -21,7 +21,7 @@ namespace config {
   enum NeuronStrategyType { NEURON_BACKPROP=0 };
   typedef enum NeuronStrategyType NeuronStrategyType;
 
-  enum SynapseStrategyType { SYNAPSE_BACKPROP=0 }; 
+  enum SynapseStrategyType { SYNAPSE_BACKPROP=0, SYNAPSE_RPROP=1 }; 
   typedef enum SynapseStrategyType SynapseStrategyType;
 
 }

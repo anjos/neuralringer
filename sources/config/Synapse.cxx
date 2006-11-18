@@ -42,6 +42,10 @@ config::Synapse::Synapse(sys::xml_ptr_const node)
       m_strategy = config::SYNAPSE_BACKPROP;
       m_params = new config::SynapseBackProp(c);
   }
+  else if (sys::get_element_name(c) == "rBackPropagation") {
+      m_strategy = config::SYNAPSE_RPROP;
+      m_params = new config::SynapseRProp(c);
+  }
   else {
     RINGER_DEBUG1("I cannot find the strategy for synapse "
 		<< m_id << "! Exception thrown.");

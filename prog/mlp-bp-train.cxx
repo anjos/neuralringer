@@ -20,7 +20,7 @@
 #include "sys/util.h"
 #include "sys/OptParser.h"
 #include "config/NeuronBackProp.h"
-#include "config/SynapseRProp.h"
+#include "config/SynapseBackProp.h"
 #include "config/type.h"
 #include "config/Header.h"
 #include <cstdlib>
@@ -41,6 +41,9 @@ typedef struct param_t {
   std::string energy; ///< where to save the energies of the clusters
   long int nhidden; ///< number of hidden neurons
   long int epoch; ///< each epoch size
+  data::Feature lrate; ///< learning rate to use
+  data::Feature lrdecay; ///< learning rate decay
+  data::Feature momentum; ///< momentum
   bool msestop; ///< use MSE product stop criteria instead of SP stabilisation
   bool compress; ///< if I should use compressed or extended output 
   long int stopiter; ///< number of iterations w/o variance to stop
@@ -73,9 +76,21 @@ bool checkopt (param_t& par, sys::Reporter& reporter)
     RINGER_DEBUG1("Test Database file " << par.testdb << " doesn't exist.");
     throw RINGER_EXCEPTION("Test Database file doesn't exist");
   }
+  if (par.momentum < 0 || par.momentum >= 1.0) {
+    RINGER_DEBUG1("Trying to set the momentum to " << par.momentum);
+    throw RINGER_EXCEPTION("The momentum should be between [0,1)");
+  }
+  if (par.lrate <= 0 || par.lrate > 2) {
+    RINGER_DEBUG1("Trying to set the learning rate to " << par.lrate);
+    throw RINGER_EXCEPTION("Learning rate should be between (0,2]");
+  }
   if (par.sample <= 0) {
     RINGER_DEBUG1("Trying to set the sampling interval to " << par.sample);
     throw RINGER_EXCEPTION("The sampling interval should be > 0");
+  }
+  if (par.lrdecay <= 0 || par.lrdecay > 1) {
+    RINGER_DEBUG1("Trying to set the learning rate decay to " << par.lrdecay);
+    throw RINGER_EXCEPTION("Learning rate decay should be between (0,1]");
   }
   if (par.stopthres <= 0) {
     RINGER_DEBUG1("I cannot use a stop threshold less than zero");
@@ -132,7 +147,8 @@ int main (int argc, char** argv)
   sys::Reporter reporter("local");
 
   param_t par = { "", "", "", "", "", "", "", "", "",
-                  4, 50, false, true, 50, 0.001, 10, 10000 };
+                  4, 50, 0.1, 1.0, 0.01, false, true,
+                  50, 0.001, 10, 10000 };
   sys::OptParser opt_parser(argv[0]);
   opt_parser.add_option
     ("hard-stop", 'b', par.hardstop,
@@ -155,6 +171,12 @@ int main (int argc, char** argv)
   opt_parser.add_option
     ("stop-iteration", 'i', par.stopiter,
      "how many times to wait for non-variation to be considered a stop sign");
+  opt_parser.add_option
+    ("momentum", 'k', par.momentum,
+     "the momentum I should use for training");
+  opt_parser.add_option
+    ("learn-rate", 'l', par.lrate,
+     "the learning rate I should use for training");
   opt_parser.add_option
     ("mse-evolution", 'm', par.mseevo,
      "where to write the MSE evolution data, during training");
@@ -182,6 +204,9 @@ int main (int argc, char** argv)
   opt_parser.add_option
     ("stop-threshold", 'w', par.stopthres,
      "the stop threshold to consider for flagging a potential stop");
+  opt_parser.add_option
+    ("learn-rate-decay", 'y', par.lrdecay,
+     "the learning rate decay I should use for training");
   opt_parser.add_option
     ("compress-output", 'z', par.compress,
      "should compress the output, e.g. 2 classes -> 1 output for the network");
@@ -232,8 +257,8 @@ int main (int argc, char** argv)
   config::NeuronBackProp::ActivationFunction actfun = 
     config::NeuronBackProp::TANH;
   config::Parameter* nsparam = new config::NeuronBackProp(actfun);
-  config::SynapseStrategyType sstrat = config::SYNAPSE_RPROP;
-  config::Parameter* ssparam = new config::SynapseRProp(0.1);
+  config::SynapseStrategyType sstrat = config::SYNAPSE_BACKPROP;
+  config::Parameter* ssparam = new config::SynapseBackProp(0.1);
   std::vector<bool> biaslayer(2, true);
   unsigned int nout = traindb.size();
   if (par.compress) nout = lrint(std::ceil(log2(traindb.size())));

@@ -18,7 +18,7 @@
 #include "sys/Exception.h"
 #include "data/RandomInteger.h"
 #include "config/NeuronBackProp.h"
-#include "config/SynapseBackProp.h"
+#include "config/SynapseRProp.h"
 #include "config/type.h"
 
 static data::RandomInteger rnd; //default initializer, do it once
@@ -41,7 +41,6 @@ network::Synapse* create_lms_synapse (const config::SynapseStrategyType& type,
 }
 
 network::LMS::LMS (const size_t input,
-                   const data::Feature& learn_rate,
                    const data::Pattern& input_subtract,
                    const data::Pattern& input_divide,
                    sys::Reporter& reporter)
@@ -72,9 +71,8 @@ network::LMS::LMS (const size_t input,
   network::Neuron* n = new network::OutputNeuron(nstrat, nsparam);
   neurons.push_back(n);
 
-  config::SynapseStrategyType sstrat = config::SYNAPSE_BACKPROP;
-  config::Parameter* ssparam = 
-    new config::SynapseBackProp(learn_rate, 0.0, 1.0);
+  config::SynapseStrategyType sstrat = config::SYNAPSE_RPROP;
+  config::Parameter* ssparam = new config::SynapseRProp(0.1);
 
   //Fully connect input to output
   std::vector<network::Synapse*> synapses; //all synapses, unorganized

@@ -123,6 +123,8 @@
   <xsd:choice>
    <xsd:element name="backPropagation" minOccurs="0" maxOccurs="1"
     type="SynapseBackPropType"/>
+   <xsd:element name="rBackPropagation" minOccurs="0" maxOccurs="1"
+    type="SynapseRPropType"/>
   </xsd:choice>
  </xsd:sequence>
  <xsd:attribute name="id" type="xsd:nonNegativeInteger" use="required"/>
@@ -165,6 +167,17 @@
    <xsd:restriction base="xsd:double">
     <xsd:minInclusive value="0.0"/>
     <xsd:maxInclusive value="1.0"/>
+   </xsd:restriction>
+  </xsd:simpleType>
+ </xsd:attribute>
+</xsd:complexType>
+
+<xsd:complexType name="SynapseRPropType">
+ <xsd:attribute name="weightUpdate" use="required">
+  <xsd:simpleType>
+   <xsd:restriction base="xsd:double">
+    <xsd:minExclusive value="0.0"/>
+    <xsd:maxInclusive value="50.0"/>
    </xsd:restriction>
   </xsd:simpleType>
  </xsd:attribute>

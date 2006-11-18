@@ -31,12 +31,12 @@ typedef struct param_t {
   std::string testdb; ///< database to use for testing
   std::string startnet; ///< name of the starting neural net file
   std::string endnet; ///< name of the ending neural net file
+  std::string bestnet; ///< name of the best neural net file
   std::string mseevo; ///< where to save the neural network MSE evolution
   std::string spevo; ///< where to save the neural network SP evolution
   std::string output; ///< where to save the last output after training
   std::string energy; ///< where to save the energies of the clusters
   long int epoch; ///< each epoch size
-  data::Feature lrate; ///< learning rate to use
   bool msestop; ///< use MSE product stop criteria instead of SP stabilisation
   long int stopiter; ///< number of iterations w/o variance to stop
   data::Feature stopthres; ///< the threshold to consider for stopping
@@ -68,10 +68,6 @@ bool checkopt (param_t& par, sys::Reporter& reporter)
     RINGER_DEBUG1("Test Database file " << par.testdb << " doesn't exist.");
     throw RINGER_EXCEPTION("Test Database file doesn't exist");
   }
-  if (par.lrate <= 0 || par.lrate > 2) {
-    RINGER_DEBUG1("Trying to set the learning rate to " << par.lrate);
-    throw RINGER_EXCEPTION("Learning rate should be between (0,2]");
-  }
   if (par.sample <= 0) {
     RINGER_DEBUG1("Trying to set the sampling interval to " << par.sample);
     throw RINGER_EXCEPTION("The sampling interval should be > 0");
@@ -87,6 +83,10 @@ bool checkopt (param_t& par, sys::Reporter& reporter)
   if (!par.endnet.size()) {
     par.endnet = sys::stripname(par.traindb) + ".end.xml";
     RINGER_DEBUG1("Setting end file name to " << par.endnet);
+  }
+  if (!par.bestnet.size()) {
+    par.bestnet = sys::stripname(par.traindb) + ".best.xml";
+    RINGER_DEBUG1("Setting best net file name to " << par.bestnet);
   }
   if (!par.energy.size()) {
     par.energy = sys::stripname(par.traindb) + ".energy.xml";
@@ -122,8 +122,8 @@ int main (int argc, char** argv)
 {
   sys::Reporter reporter("local");
 
-  param_t par = { "", "", "", "", "", "", "", "",
-                  1, 0.1, false, 100, 0.001, 5, 0 };
+  param_t par = { "", "", "", "", "", "", "", "", "",
+                  1, false, 100, 0.001, 5, 0 };
   sys::OptParser opt_parser(argv[0]);
   opt_parser.add_option
     ("hard-stop", 'b', par.hardstop,
@@ -138,14 +138,14 @@ int main (int argc, char** argv)
     ("end-net", 'e', par.endnet, 
      "where to write the last network");
   opt_parser.add_option
+    ("best-net", 'g', par.endnet, 
+     "where to write the best network");
+  opt_parser.add_option
     ("energy", 'j', par.energy,
      "the name of the output file for transverse energies of input clusters");
   opt_parser.add_option
     ("stop-iteration", 'i', par.stopiter,
      "how many times to wait for non-variation to be considered a stop sign");
-  opt_parser.add_option
-    ("learn-rate", 'l', par.lrate,
-     "the learning rate I should use for training");
   opt_parser.add_option
     ("mse-evolution", 'm', par.mseevo,
      "where to write the MSE evolution data, during training");
@@ -209,8 +209,7 @@ int main (int argc, char** argv)
   }
 
   //Builds the LMS network
-  network::LMS net(traindb.pattern_size(), par.lrate, 
-                   norm_op.mean(), norm_op.stddev(),
+  network::LMS net(traindb.pattern_size(), norm_op.mean(), norm_op.stddev(),
                    reporter);
 
   data::RoIPatternSet train(1, 1);
@@ -297,10 +296,10 @@ int main (int argc, char** argv)
           if (savenet) { //save the current network because it is the best
             //save result
             RINGER_REPORT(reporter, "Saving best network so far at \""
-                          << par.endnet << "\"...");
-            config::Header end_header("Andre DOS ANJOS", par.output, 
+                          << par.bestnet << "\"...");
+            config::Header best_header("Andre DOS ANJOS", par.output, 
                                       "1.0", time(0), "Trained network");
-            net.save(par.endnet, &end_header);
+            net.save(par.bestnet, &best_header);
           }
         }
         {
@@ -333,6 +332,13 @@ int main (int argc, char** argv)
       ++i; //go to next epoch
     }
     
+    //save result
+    RINGER_REPORT(reporter, "Saving last network \""
+                  << par.endnet << "\"...");
+    config::Header end_header("Andre DOS ANJOS", par.output, 
+                              "1.0", time(0), "Trained network");
+    net.save(par.endnet, &end_header);
+
     RINGER_REPORT(reporter,
 		  "Saving training and testing outputs and targets.");
     

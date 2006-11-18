@@ -12,6 +12,7 @@
 #include "sys/Exception.h"
 #include "sys/debug.h"
 #include "network/SynapseBackProp.h"
+#include "network/SynapseRProp.h"
 
 unsigned int network::Synapse::s_id = 0; ///< initialisation
 
@@ -38,6 +39,9 @@ network::Synapse::Synapse (const data::Feature& init,
   case config::SYNAPSE_BACKPROP:
     m_teacher = new strategy::SynapseBackProp(params);
     break;
+  case config::SYNAPSE_RPROP:
+    m_teacher = new strategy::SynapseRProp(params);
+    break;
   default:
     RINGER_DEBUG1("Unknown strategy type \"" << strategy 
 		  << "\"! Exception thrown.");
@@ -60,6 +64,9 @@ network::Synapse::Synapse (const config::Synapse& config)
   switch(m_strategy) {
   case config::SYNAPSE_BACKPROP:
     m_teacher = new strategy::SynapseBackProp(config.parameters());
+    break;
+  case config::SYNAPSE_RPROP:
+    m_teacher = new strategy::SynapseRProp(config.parameters());
     break;
   }
   RINGER_DEBUG3("Built synapse " << m_id << " with initial weight = " 
@@ -193,6 +200,15 @@ config::Synapse network::Synapse::dump(void) const
       config::SynapseBackProp tmp = teacher->dump();
       return config::Synapse(m_id, m_in->id(), m_out->id(), m_weight,
 			     m_strategy, &tmp);
+    }
+    break;
+  case config::SYNAPSE_RPROP:
+    {
+      const strategy::SynapseRProp* teacher =
+        dynamic_cast<const strategy::SynapseRProp*>(m_teacher);
+      config::SynapseRProp tmp = teacher->dump();
+      return config::Synapse(m_id, m_in->id(), m_out->id(), m_weight,
+                             m_strategy, &tmp);
     }
     break;
   default:

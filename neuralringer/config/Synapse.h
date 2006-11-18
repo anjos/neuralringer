@@ -11,6 +11,7 @@
 
 #include "config/type.h"
 #include "config/SynapseBackProp.h"
+#include "config/SynapseRProp.h"
 #include "sys/xmlutil.h"
 
 namespace config {
