@@ -10,7 +10,6 @@ add_definitions(-D__PACKAGE__="network")
 # so profiling extensions can be compiled in.
 if(googlePerfTools_FOUND)
   set(shared "${shared};${googlePerfTools_LIBRARIES}")
-  add_definitions(-DHAS_GOOGLE_PERFTOOLS)
 endif(googlePerfTools_FOUND)
 
 # This defines the list of source files inside this package.
@@ -41,6 +40,7 @@ nlab_library(network "${src}" "${deps}" "${shared}")
 # Python bindings
 set(pysrc
    "python/src/main.cc"
+   "python/src/network.cc"
    )
  
 nlab_python_bindings(network "${pysrc}")

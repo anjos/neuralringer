@@ -13,6 +13,8 @@
 #include "sys/debug.h"
 #include <string>
 #include <sstream>
+#include <cstring>
+#include <cstdlib>
 
 sys::xml_ptr_const sys::get_next_element (sys::xml_ptr_const node)
 {

@@ -8,6 +8,7 @@
 
 #include "data/RandomInteger.h"
 #include <ctime>
+#include <cstdlib>
 
 /**
  * Initialisation

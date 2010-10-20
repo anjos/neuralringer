@@ -9,6 +9,9 @@
 
 using namespace boost::python;
 
+void bind_config();
+
 BOOST_PYTHON_MODULE(libpynlab_config) {
   scope().attr("__doc__") = "Neural Lab config classes and sub-classes";
+  bind_config();
 }

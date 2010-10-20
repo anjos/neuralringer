@@ -10,7 +10,6 @@ add_definitions(-D__PACKAGE__="config")
 # so profiling extensions can be compiled in.
 if(googlePerfTools_FOUND)
   set(shared "${shared};${googlePerfTools_LIBRARIES}")
-  add_definitions(-DHAS_GOOGLE_PERFTOOLS)
 endif(googlePerfTools_FOUND)
 
 # This defines the list of source files inside this package.
@@ -36,6 +35,7 @@ nlab_library(config "${src}" "${deps}" "${shared}")
 # Python bindings
 set(pysrc
    "python/src/main.cc"
+   "python/src/config.cc"
    )
  
 nlab_python_bindings(config "${pysrc}")

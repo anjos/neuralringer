@@ -10,7 +10,6 @@ add_definitions(-D__PACKAGE__="data")
 # so profiling extensions can be compiled in.
 if(googlePerfTools_FOUND)
   set(shared "${shared};${googlePerfTools_LIBRARIES}")
-  add_definitions(-DHAS_GOOGLE_PERFTOOLS)
 endif(googlePerfTools_FOUND)
 
 # This defines the list of source files inside this package.

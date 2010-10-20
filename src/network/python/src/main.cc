@@ -9,6 +9,9 @@
 
 using namespace boost::python;
 
+void bind_network();
+
 BOOST_PYTHON_MODULE(libpynlab_network) {
   scope().attr("__doc__") = "Neural Lab network classes and sub-classes";
+  bind_network();
 }

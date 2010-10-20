@@ -10,6 +10,7 @@
 #include "sys/debug.h"
 #include "sys/Exception.h"
 #include <cstdlib>
+#include <cstring>
 
 sys::Codec sys::default_codec(XML_CHAR_ENCODING_UTF8);
 
