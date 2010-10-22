@@ -9,7 +9,7 @@
 __all__ = ['Database']
 
 from xml.dom.minidom import parse as xml_parse
-from data import PatternSet
+from . import PatternSet
 from math import ceil
 from random import sample, shuffle
 
@@ -30,7 +30,7 @@ def db_from_xml(source):
   retval = {}
   pattern_length = None
   for c in dom.getElementsByTagName('class'):
-    length, retval[c.getAttribute('name')] = load_entries(c)
+    length, retval[c.getAttribute('name')] = load_features(c)
     retval[c.getAttribute('name')] = tuple(retval[c.getAttribute('name')])
     if not pattern_length: pattern_length = length
     elif length != pattern_length:
@@ -51,7 +51,7 @@ class Database(object):
         for k, v in other.data.iteritems(): self.data[k] = v
         for k, v in other.target.iteritems(): self.target[k] = v 
       elif isinstance(args[0], str): #load from file
-        f = open(filename, 'rt')
+        f = open(args[0], 'rt')
         self.data = db_from_xml(f)
         f.close()
       else:
@@ -60,6 +60,14 @@ class Database(object):
 
     else:
       raise RuntimeError, "Can only have 1 arg. for Database __init__()"
+
+  def __str__(self):
+    retval = ''
+    for k in self.data.iterkeys():
+      retval += 'Class %s\n' % k
+      for v in self.data[k]:
+        retval += '  %s => %s\n' % (v, self.target[k])
+    return retval 
 
   def size(self):
     return len(self.data)

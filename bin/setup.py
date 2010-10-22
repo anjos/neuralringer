@@ -144,10 +144,16 @@ def main(dir, debug):
 
   # this is for cmake
   cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '')
-  cmakedir = os.path.join(install_dir, 'share', 'cmake')
+  cmakedir = os.path.join(install_dir, 'share', 'nlab', 'cmake')
   cmake_prefix_path = path_remove_if_startswith(cmake_prefix_path, base_dir)
   cmake_prefix_path = path_add(cmake_prefix_path, cmakedir)
   all.append(('CMAKE_PREFIX_PATH', cmake_prefix_path))
+
+  # and for the ringer
+  ringer_path = os.environ.get('RINGER_SCHEMA_PATH', '')
+  if not ringer_path:
+    ringer_path = os.path.join(install_dir, 'share', 'nlab', 'schema')
+  all.append(('RINGER_SCHEMA_PATH', ringer_path))
 
   return all
 

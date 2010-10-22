@@ -57,10 +57,12 @@ boost::shared_ptr<network::MLP> make_network_2(const size_t input,
         syn_strat_type, syn_params, input_subtract, input_divide, reporter));
 }
 
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(save_overloads, save, 1, 2)
+
 void bind_network()
 {
   class_<network::Network, boost::shared_ptr<network::Network>, boost::noncopyable>("Network", "Interface to load/save network data from files", init<const std::string&, sys::Reporter&>())
-    .def("save", &network::Network::save, (arg("self"), arg("filename")), "Saves the current network into a XML file.")
+    .def("save", &network::Network::save, save_overloads((arg("self"), arg("filename"), arg("header")), "Saves the current network into a XML file."))
     .def("dot", &network::Network::dot, (arg("self"), arg("filename")), "Draws using dot, the current network")
     .add_property("input_size", &network::Network::input_size)
     .add_property("output_size", &network::Network::output_size)
@@ -68,6 +70,7 @@ void bind_network()
     .def("train", (void (network::Network::*)(const data::PatternSet&, const data::PatternSet&))&network::Network::train, (arg("self"), arg("data"), arg("target")), "Train using all data from the given set, in a single step")
     .def("run", (void (network::Network::*)(const data::Pattern&, data::Pattern&))&network::Network::run, (arg("self"), arg("input"), arg("output")), "Single test")
     .def("run", (void (network::Network::*)(const data::PatternSet&, data::PatternSet&))&network::Network::run, (arg("self"), arg("input"), arg("output")), "Batch test")
+    .def("reporter", &network::Network::reporter, (arg("self")), "Returns my current reporter.", return_internal_reference<>())
     ;
 
   class_<network::MLP, boost::shared_ptr<network::MLP>, bases<network::Network>, boost::noncopyable>("MLP", "Interface to create, load and safe Multi-Layer Perceptrons", no_init)

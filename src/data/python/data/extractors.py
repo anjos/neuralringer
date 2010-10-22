@@ -19,10 +19,10 @@ def standard(db):
   """
 
   def mean(v): 
-    sum(v)/float(len(v))
+    return sum(v)/float(len(v))
   def var(v):
     m = mean(v)
-    (1.0/(len(v)-1)) * sum([(k-m)**2.0 for k in v])
+    return (1.0/(len(v)-1)) * sum([(k-m)**2.0 for k in v])
 
   #calculates the intra-class averages
   averages = []
@@ -38,11 +38,11 @@ def standard(db):
   overall_average = tuple(overall_average)
 
   #now we compute the overall deviation from the mean
-  variances = {} 
+  variances = [] 
   for k, features in db.data.iteritems():
     s = []
     for i in range(db.pattern_size()): s.append(var([f[i] for f in features]))
-    variances[k] = s
+    variances.append(s)
 
   #calculates the overall variance
   overall_variance = []
@@ -51,4 +51,4 @@ def standard(db):
     overall_variance.append(factor*sum([i[k] for i in variances]))
   overall_stddev = tuple([k**0.5 for k in overall_variance])
 
-  return (overall_mean, overall_stddev)
+  return (overall_average, overall_stddev)

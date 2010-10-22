@@ -15,22 +15,23 @@ class Observer(object):
   trained. It can provide clues on which states are worth saving or when to
   stop training a classifier."""
 
-  def __init__(self, classifier, train, devel, test, reporter):
+  def __init__(self, classifier, train, devel, test):
     def prepare_buffers(database):
       retval = {}
       retval['database'] = database
       retval['input'] = database.cat()
       retval['target'] = database.cat_target()
       retval['output'] = database.cat_target()
+      return retval
 
     self.data = {}
     self.data['train'] = prepare_buffers(train)
     self.data['devel'] = prepare_buffers(devel)
     self.data['test'] = prepare_buffers(test)
     self.classifier = classifier
-    self.best_classifier_seen = (0, classifier.clone(reporter))
-    self.reporter = reporter
+    self.best_classifier_seen = (0, classifier.clone())
     self.mse = []
+    self.lowest_mse = 2.0
 
   def rundb(self, classifier, dbname):
     classifier.run(self.data[dbname]['input'], self.data[dbname]['output'])
@@ -43,13 +44,21 @@ class Observer(object):
       return self.data[dbname]['output'].mse(self.data[dbname]['target'])
 
     result = {}
-    for k, v in self.data.iteritems(): result[k] = eval_once(self.classifier, v)
-    
-    if result['devel'] < min([k['devel'] for k in self.mse]): #save best state
-      self.best_classifier_seen = (len(self.mse), 
-          self.classifier.clone(self.reporter))
+    for k in self.data.iterkeys(): result[k] = eval_once(self.classifier, k)
+     
+    if not len(self.mse) or \
+        result['devel'] < self.lowest_mse: #save best state
+      print 'Step %d - Saving current network, MSE = %.4e < %.4e' % \
+        (len(self.mse), result['devel'], self.lowest_mse)
+      self.lowest_mse = result['devel']
+      self.best_classifier_seen = (len(self.mse), self.classifier.clone())
     
     self.mse.append(result)
+
+  def statistics(self):
+    return 'Step %d - devel: %.4e; train: %.4e; test: %.4e' % \
+        (len(self.mse), self.mse[-1]['devel'], self.mse[-1]['train'],
+            self.mse[-1]['test'])
 
   def _stalled(self):
     """Determines how many cycles w/o improvement have been observed."""
@@ -153,17 +162,11 @@ class Analyzer(object):
 
   def __init__(self, observer):
     self.observer = observer
-    self.signal_class = signal
-    self.noise_class = noise
 
     #gets the MSE
     self.data = {'train': {}, 'devel': {}, 'test': {},}
     for k in self.data.keys():
       self.data[k]['mse'] = [i[k] for i in self.observer.mse]
-
-    #estimates the FAR and FFR on all sets
-    if len(self.observer.evaluator.train.target.values()) != 2:
-      raise RuntimeError, "Can only make plots if we have only 2 targets"
 
     #WARNING: -1 => noise, +1 => signal
     points = 20
@@ -175,8 +178,8 @@ class Analyzer(object):
       self.observer.rundb(self.observer.best_classifier_seen[1], k)
       output = self.observer.data[k]['output']
       target = self.observer.data[k]['target']
-      noise = [output[j] for j in range(len(output)) if target[j] < 0]
-      signal = [output[j] for j in range(len(output)) if target[j] > 0]
+      noise = [output[j] for j in range(output.size()) if target[j] < 0]
+      signal = [output[j] for j in range(output.size()) if target[j] > 0]
       for t in thresholds: 
         self.data[k]['far'].append(far(noise, t))
         self.data[k]['frr'].append(frr(signal, t))

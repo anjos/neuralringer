@@ -144,6 +144,11 @@ namespace network {
      */
     inline size_t output_size (void) const { return m_output.size(); }
 
+    /**
+     * Returns the current reporter.
+     */
+    inline sys::Reporter& reporter(void) { return m_reporter; }
+
   protected: //for children
     
     /**

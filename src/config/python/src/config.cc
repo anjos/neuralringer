@@ -34,6 +34,18 @@ void bind_config()
 
   class_<config::Parameter, boost::shared_ptr<config::Parameter>, boost::noncopyable>("Parameter", "A generic parameter object", no_init);
 
+  class_<config::SynapseBackProp, boost::shared_ptr<config::SynapseBackProp>, bases<config::Parameter> >("SynapseBackProp", "The configuration of a classical back-prop synapse.", init<const double&, const double&, const double&>()) 
+    .add_property("learning_rate", &config::SynapseBackProp::learning_rate)
+    .add_property("momentum", &config::SynapseBackProp::momentum)
+    .add_property("learning_rate_decay", &config::SynapseBackProp::learning_rate_decay)
+    ;
+
+  class_<config::SynapseRProp, boost::shared_ptr<config::SynapseRProp>, bases<config::Parameter> >("SynapseRProp", "The configuration of a classical back-prop synapse.", init<const double&>()) 
+    .add_property("weight_update", &config::SynapseRProp::weight_update)
+    ;
+
+  // Please note that all definitions after this will be bound to this class'
+  // namespace.
   scope in_object = class_<config::NeuronBackProp, boost::shared_ptr<config::NeuronBackProp>, bases<config::Parameter> >("NeuronBackProp", "The configuration of a back-propagation neuron", init<const config::NeuronBackProp::ActivationFunction&>((arg("activation_function"))))
     //.def("activation_function", &config::NeuronBackProp::activation_function, "Returns the currently configured activation function", return_internal_reference<>())
     ;
@@ -44,13 +56,4 @@ void bind_config()
     .value("LINEAR", config::NeuronBackProp::LINEAR)
     ;
 
-  class_<config::SynapseBackProp, boost::shared_ptr<config::SynapseBackProp>, bases<config::Parameter> >("SynapseBackProp", "The configuration of a classical back-prop synapse.", init<const double&, const double&, const double&>()) 
-    .add_property("learning_rate", &config::SynapseBackProp::learning_rate)
-    .add_property("momentum", &config::SynapseBackProp::momentum)
-    .add_property("learning_rate_decay", &config::SynapseBackProp::learning_rate_decay)
-    ;
-
-  class_<config::SynapseRProp, boost::shared_ptr<config::SynapseRProp>, bases<config::Parameter> >("SynapseRProp", "The configuration of a classical back-prop synapse.", init<const double&>()) 
-    .add_property("weight_update", &config::SynapseRProp::weight_update)
-    ;
 }

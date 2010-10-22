@@ -18,7 +18,7 @@ endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 
 set(CMAKE_CXX_FLAGS_RELEASE "${COMMON_FLAGS} -O3 -march=native")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-set(CMAKE_CXX_FLAGS_DEBUG "${COMMON_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "${COMMON_FLAGS} -DRINGER_DEBUG=3")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
 # This is our RPATH policy
@@ -34,7 +34,7 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # This is where we install cmake files for external projects
-set(cmakedir share/cmake)
+set(cmakedir share/nlab/cmake)
 
 # Sets up externals and install the central dependency file
 include(cmake/nlab-external.cmake)
@@ -47,6 +47,10 @@ foreach(ext ${nlab_OPTIONALS})
   install(FILES external/${ext}Config.cmake DESTINATION ${cmakedir})
 endforeach(ext ${nlab_OPTIONALS}) 
 install(FILES cmake/nlab-external.cmake DESTINATION ${cmakedir})
+
+# This will install the schema files
+set(schemadir share/nlab/schema)
+install(FILES schema/network.xsd;schema/database.xsd DESTINATION ${schemadir})
 
 # Enables the testing framework
 enable_testing()

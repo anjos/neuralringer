@@ -34,7 +34,6 @@ network::Network::Network (const std::string& config,
     m_neuron(),
     m_synapse()
 {
-  RINGER_REPORT(m_reporter, "Loading network configuration...");
   m_config = new config::Network(config, reporter);
   /**
    * BUILD NEURONS FIRST
@@ -65,7 +64,6 @@ network::Network::Network (const std::string& config,
       throw RINGER_EXCEPTION("Unknown neuron type");
     }
   }
-  RINGER_REPORT(m_reporter, m_config->neurons().size() << " neurons created.");
 
   /**
    * NOW BUILD THE SYNAPSES AND CONNECT NEURONS TOGETHER
@@ -97,13 +95,6 @@ network::Network::Network (const std::string& config,
     RINGER_DEBUG1("Created synapse " << (*it)->id() << " connecting neuron " 
 		<< (*it)->from() << " to neuron " << (*it)->to());
   }
-  RINGER_REPORT(m_reporter, m_config->synapses().size() 
-	      << " synapses created.");
-  time_t ls = m_config->header()->lastSaved();
-  RINGER_REPORT(m_reporter, "Incarnated neural network \"" 
-	      << m_config->header()->name() << "\" version \"" 
-	      << m_config->header()->version() << "\" last saved at \""
-	      << sys::stringtime(&ls) << "\" ");
 }
 
 network::Network::Network (const std::vector<network::Neuron*>& neurons,
