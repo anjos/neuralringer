@@ -8,35 +8,34 @@
 #include <boost/python.hpp>
 #include <boost/shared_ptr.hpp>
 #include "data/Pattern.h"
-#include "data/SimplePatternSet.h"
+#include "data/PatternSet.h"
 #include "data/Database.h"
 #include "data/Header.h"
+#include "data/util.h"
 
 using namespace boost::python;
 
-typedef data::Database<data::SimplePatternSet> db_t;
-
-boost::shared_ptr<data::SimplePatternSet> create_patternset(list data) {
+boost::shared_ptr<data::PatternSet> create_patternset(list data) {
   std::vector<data::Pattern*> v; 
   for (size_t i = 0; i < data.attr("__len__")(); ++i) {
     data::Pattern& p = extract<data::Pattern&>(data[i]);
     v.push_back(&p);
   }
-  return boost::shared_ptr<data::SimplePatternSet>(new data::SimplePatternSet(v));
+  return boost::shared_ptr<data::PatternSet>(new data::PatternSet(v));
 }
 
-boost::shared_ptr<db_t> create_database(data::Header& h, dict data, 
+boost::shared_ptr<data::Database> create_database(data::Header& h, dict data, 
     sys::Reporter& r) {
-  std::map<std::string, data::SimplePatternSet*> d;
+  std::map<std::string, data::PatternSet*> d;
   for (object i = data.iterkeys(); i; i = i.attr("next")()) {
     const char* name = extract<const char*>(i);
-    data::SimplePatternSet& ps = extract<data::SimplePatternSet&>(data[i]);
+    data::PatternSet& ps = extract<data::PatternSet&>(data[i]);
     d[name] = &ps;
   }
-  return boost::shared_ptr<db_t>(new db_t(&h, d, r));
+  return boost::shared_ptr<data::Database>(new data::Database(&h, d, r));
 }
 
-dict get_data(db_t& db) {
+dict get_data(data::Database& db) {
   dict retval;
   std::vector<std::string> class_names;
   db.class_names(class_names);
@@ -46,7 +45,7 @@ dict get_data(db_t& db) {
   return retval;
 }
 
-list get_class_names(const db_t& db) {
+list get_class_names(const data::Database& db) {
   list retval;
   std::vector<std::string> class_names;
   db.class_names(class_names);
@@ -54,16 +53,15 @@ list get_class_names(const db_t& db) {
   return retval;
 }
 
-boost::shared_ptr<data::SimplePatternSet> db_merge(const db_t& db) {
-  boost::shared_ptr<data::SimplePatternSet> retval(new data::SimplePatternSet(1, 1));
+boost::shared_ptr<data::PatternSet> db_merge(const data::Database& db) {
+  boost::shared_ptr<data::PatternSet> retval(new data::PatternSet(1, 1));
   db.merge(*retval.get());
   return retval;
 }
 
-boost::shared_ptr<data::SimplePatternSet> db_merge_target
-(const db_t& db, const bool minimal, const double& min, const double& max) {
-  boost::shared_ptr<data::SimplePatternSet> retval(new data::SimplePatternSet(1, 1));
-  db.merge_target(minimal, min, max, *retval.get());
+boost::shared_ptr<data::PatternSet> db_merge_target (const data::Database& db) {
+  boost::shared_ptr<data::PatternSet> retval(new data::PatternSet(1, 1));
+  db.merge_target(*retval.get());
   return retval;
 }
 
@@ -100,33 +98,37 @@ void bind_data_database()
     .def("append", &data::Pattern::append, (arg("self"), arg("pattern")))
     ;
 
-  class_<data::SimplePatternSet, boost::shared_ptr<data::SimplePatternSet> >("SimplePatternSet", "This class represents a set of data::Pattern's.\n\nA <b>data::Pattern set</b> is an entity that holds, virtually, any number of data::Pattern's. The set can be queried for special methods, allows random access with a reasonable speed and data::Pattern's to be inserted and removed from it. Some sort of normalisation strategies are also possible. A SimplePatternSet can also be used to produce smaller <b>sets</b> that match a certain criteria. This class and related methods are strongly based on the GNU Scientific Library (GSL) vector/matrix/block objects. Please, refer to the GSL manual to understand better its limitations and virtudes (try at your shell <code>info gsl</code> or <code>info gsl-ref</code>).\n\n While data::Pattern's represent each event available in a SimplePatternSet, a data::Ensemble represents a given Feature for every event in a SimplePatternSet. Through this abstraction, it is possible to also manipulate a SimplePatternSet with respect to its 'columns', erasing or setting them.\n\nAll types developed to be used in conjunction with this class may be derived types through the use of GSL's views of blocks, matrices and vectors.", init<const size_t&, const size_t&, optional<const data::Feature&> >((arg("set_size"), arg("pattern_size"), arg("init_value")), "Creates a brand new PatternSet"))
+  class_<data::PatternSet, boost::shared_ptr<data::PatternSet> >("PatternSet", "This class represents a set of data::Pattern's.\n\nA <b>data::Pattern set</b> is an entity that holds, virtually, any number of data::Pattern's. The set can be queried for special methods, allows random access with a reasonable speed and data::Pattern's to be inserted and removed from it. Some sort of normalisation strategies are also possible. A PatternSet can also be used to produce smaller <b>sets</b> that match a certain criteria. This class and related methods are strongly based on the GNU Scientific Library (GSL) vector/matrix/block objects. Please, refer to the GSL manual to understand better its limitations and virtudes (try at your shell <code>info gsl</code> or <code>info gsl-ref</code>).\n\n While data::Pattern's represent each event available in a PatternSet, a data::Ensemble represents a given Feature for every event in a PatternSet. Through this abstraction, it is possible to also manipulate a PatternSet with respect to its 'columns', erasing or setting them.\n\nAll types developed to be used in conjunction with this class may be derived types through the use of GSL's views of blocks, matrices and vectors.", init<const size_t&, const size_t&, optional<const data::Feature&> >((arg("set_size"), arg("pattern_size"), arg("init_value")), "Creates a brand new PatternSet"))
     .def("__init__", make_constructor(create_patternset, default_call_policies(), (arg("data"))))
-    .def("size", &data::SimplePatternSet::size, (arg("self")), "Returns the size of the set")
-    .def("pattern_size", &data::SimplePatternSet::size, (arg("self")), "Returns the size of each Pattern in the set")
-    .def("pattern", &data::SimplePatternSet::pattern, (arg("self"), arg("pos")), "Returns a specific pattern from the set")
-    .def("ensemble", &data::SimplePatternSet::ensemble, (arg("self"), arg("pos")), "Returns a specific ensemble (column) from the set")
-    .def("set_pattern", &data::SimplePatternSet::set_pattern, (arg("self"), arg("pos"), arg("pattern")), "Sets a particular Pattern to the given value")
-    .def("set_ensemble", &data::SimplePatternSet::set_ensemble, (arg("self"), arg("pos"), arg("pattern")), "Sets a particular Ensemble to the given value")
-    .def("erase_pattern", &data::SimplePatternSet::erase_pattern, (arg("self"), arg("pos")), "Removes a particular Pattern from the set")
-    .def("erase_ensemble", &data::SimplePatternSet::erase_pattern, (arg("self"), arg("pos")), "Removes a particular Ensemble from the set")
-    .def("shuffle", &data::SimplePatternSet::shuffle, (arg("self")), "Shuffles the order of data inside this SimplePatternSet.")
-    .def("merge", &data::SimplePatternSet::merge, (arg("self")), "This method will copy the given SimplePatternSet Pattern's into the current set, enlarging it. We check if the Pattern sizes are the same previous to the copying. This method returns a reference to the current set being manipulated.", return_self<>()) 
-    .def("__isub__", &data::SimplePatternSet::operator-=, return_self<>())
+    .def("size", &data::PatternSet::size, (arg("self")), "Returns the size of the set")
+    .def("pattern_size", &data::PatternSet::size, (arg("self")), "Returns the size of each Pattern in the set")
+    .def("pattern", &data::PatternSet::pattern, (arg("self"), arg("pos")), "Returns a specific pattern from the set")
+    .def("ensemble", &data::PatternSet::ensemble, (arg("self"), arg("pos")), "Returns a specific ensemble (column) from the set")
+    .def("set_pattern", &data::PatternSet::set_pattern, (arg("self"), arg("pos"), arg("pattern")), "Sets a particular Pattern to the given value")
+    .def("set_ensemble", &data::PatternSet::set_ensemble, (arg("self"), arg("pos"), arg("pattern")), "Sets a particular Ensemble to the given value")
+    .def("erase_pattern", &data::PatternSet::erase_pattern, (arg("self"), arg("pos")), "Removes a particular Pattern from the set")
+    .def("erase_ensemble", &data::PatternSet::erase_pattern, (arg("self"), arg("pos")), "Removes a particular Ensemble from the set")
+    .def("shuffle", &data::PatternSet::shuffle, (arg("self")), "Shuffles the order of data inside this PatternSet.")
+    .def("merge", &data::PatternSet::merge, (arg("self")), "This method will copy the given PatternSet Pattern's into the current set, enlarging it. We check if the Pattern sizes are the same previous to the copying. This method returns a reference to the current set being manipulated.", return_self<>()) 
+    .def("__isub__", &data::PatternSet::operator-=, return_self<>())
+    .def("mean_square", &data::mean_square, (arg("self")), "Calculates the Mean Square (MS) of this PatternSet, taking in consideration both of its dimensions. The formulae for this calculation is given by:\n\\frac{{\\sum_i}^M{{\\sum_j}^N{{e_{ij}}^{2}}}}{M \\times N}\n Where <b>M</b> describes the number of patterns the set contains and <b>N</b>, the number of ensembles there is.")
+    .def("root_mean_square", &data::root_mean_square, (arg("self")), "This is simply the sqrt(mean_square(self)). Read the help of `mean_square` to understand what it is.")
+    .def("abs_mean", &data::abs_mean, (arg("self")), "Calculates the mean of a sum of absolute values of this PatternSet, taking in consideration both of its dimensions. The formula for this calculation is given by:\nE = \\frac{{\\sum_i}^M{{\\sum_j}^N{{|e_{ij}|}}}}{M \\times N}\nWhere <b>M</b> describes the number of patterns the set contains and <b>N</b>, the number of ensembles there is.")
+    .def("mse", &data::mse, (arg("self"), arg("target")), "Calculates the Mean-Square Root Error for a certain classifier output, given its target values.")
     ;
 
-  class_<db_t, boost::shared_ptr<db_t> >("Database", "Loads a database in memory. The database file consists of a header description and a set of entries each of which, contains one or more data sets classified.", init<const std::string&, sys::Reporter&>((arg("filename"), arg("reporter"))))
+  class_<data::Database, boost::shared_ptr<data::Database> >("Database", "Loads a database in memory. The database file consists of a header description and a set of entries each of which, contains one or more data sets classified.", init<const std::string&, sys::Reporter&>((arg("filename"), arg("reporter"))))
     .def("__init__", make_constructor(create_database, default_call_policies(), (arg("header"), arg("data"), arg("reporter"))))
-    .def("header", &db_t::header, (arg("self")), "Returns the DB header", return_internal_reference<>())
-    .def("size", &db_t::size, (arg("self")), "The current DB size")
-    .def("pattern_size", &db_t::pattern_size, (arg("self")), "The size of each pattern inside this DB")
-    .def("data", (const data::SimplePatternSet*(db_t::*)(const std::string&))&db_t::data, (arg("self"), arg("class_id")), "Returns a handle to the pattern set pointed by the class id input", return_internal_reference<>())
+    .def("header", &data::Database::header, (arg("self")), "Returns the DB header", return_internal_reference<>())
+    .def("size", &data::Database::size, (arg("self")), "The current DB size")
+    .def("pattern_size", &data::Database::pattern_size, (arg("self")), "The size of each pattern inside this DB")
+    .def("data", (const data::PatternSet*(data::Database::*)(const std::string&))&data::Database::data, (arg("self"), arg("class_id")), "Returns a handle to the pattern set pointed by the class id input", return_internal_reference<>())
     .def("data", &get_data, (arg("self")), "Returns a handle to a database dictionary", with_custodian_and_ward_postcall<0, 1>())
     .def("class_names", &get_class_names, (arg("self")), "Returns a handle to a database dictionary")
-    .def("save", &db_t::save, (arg("self"), arg("filename")), "Saves into a file.")
+    .def("save", &data::Database::save, (arg("self"), arg("filename")), "Saves into a file.")
     .def("merge", &db_merge, (arg("self")), "Merges the whole database into a single PatternSet.")
-    .def("merge_target", &db_merge_target, (arg("self"), arg("minimal"), arg("min"), arg("max")), "Returns a PatternSet which express the class of each 'merged' Pattern returned by merge(). There are two possible options 'minimal' representation, in which the number of ensembles will be minimised to the closest power of two possibility. For example, if I have two classes, only one ensemble will exist (<code>min</code> indicates the value for the first class of Pattern's while <code>max</code> indicates the value for the second class of Pattern's). The second possibility is 'normal' where each output will represent one and only one class. In this case, looking at the targets, the maximum happening in ensemble 0, indicates the Pattern's are from class 0, when the maximum happens at ensemble 2, the Pattern's related belong to class 2, and on.")
-    .def("normalise", &db_t::normalise, (arg("self")), "Normalises the database contents with respect to its classes. This process will calculate the number of Patterns in each class and will concatenate each PatternSet (class) so each class has the same amount of Pattern's.")
-    .def("shuffle", &db_t::shuffle, (arg("self")), "This will shuffle all PatternSet's inside this database, randomly.")
+    .def("merge_target", &db_merge_target, (arg("self")), "Returns a PatternSet which express the class of each 'merged' Pattern returned by merge().")
+    .def("normalise", &data::Database::normalise, (arg("self")), "Normalises the database contents with respect to its classes. This process will calculate the number of Patterns in each class and will concatenate each PatternSet (class) so each class has the same amount of Pattern's.")
+    .def("shuffle", &data::Database::shuffle, (arg("self")), "This will shuffle all PatternSet's inside this database, randomly.")
 		;
 }

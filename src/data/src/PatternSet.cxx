@@ -1,9 +1,9 @@
 //Dear emacs, this is -*- c++ -*-
 
 /**
- * @file data/src/SimplePatternSet.cxx
+ * @file data/src/PatternSet.cxx
  *
- * @brief Defines the SimplePatternSet class. 
+ * @brief Defines the PatternSet class. 
  */
 
 #include <iostream>
@@ -12,28 +12,28 @@
 #include <gsl/gsl_errno.h>
 #include <cstdio>
 
-#include "data/SimplePatternSet.h"
+#include "data/PatternSet.h"
 #include "data/RandomInteger.h"
 #include "sys/Exception.h"
 #include "sys/debug.h"
 #include "sys/xmlutil.h"
 
-data::SimplePatternSet::SimplePatternSet(const size_t& size, 
+data::PatternSet::PatternSet(const size_t& size, 
 					 const size_t& p_size,
 					 const double& init)
   : m_data(0) ///< initialize with a NULL pointer
 {
-  RINGER_DEBUG1("Creating SimplePatternSet with size=" 
+  RINGER_DEBUG1("Creating PatternSet with size=" 
 		<< size << " and pattern"
 		<< " size=" << p_size << ", initializer is " << init);
   //try to allocate enough space with GSL
   m_data = gsl_matrix_alloc (size, p_size);
   //set all elements to the given value
   gsl_matrix_set_all(m_data, init);
-  RINGER_DEBUG1("SimplePatternSet created and initialised.");
+  RINGER_DEBUG1("PatternSet created and initialised.");
 }
 
-data::SimplePatternSet::SimplePatternSet(sys::xml_ptr_const node)
+data::PatternSet::PatternSet(sys::xml_ptr_const node)
   : m_data(0)
 {
   std::vector<Pattern*> data;
@@ -58,29 +58,29 @@ data::SimplePatternSet::SimplePatternSet(sys::xml_ptr_const node)
     }
   }
   //Build
-  RINGER_DEBUG2("Building SimplePatternSet from XML data.");
+  RINGER_DEBUG2("Building PatternSet from XML data.");
   m_data = gsl_matrix_alloc(data.size(), std_size);
   for (unsigned int i=0; i<data.size(); ++i)
     gsl_matrix_set_row(m_data, i, data[i]->m_vector);
-  RINGER_DEBUG2("The new SimplePatternSet has " <<data.size()<< " patterns.");
+  RINGER_DEBUG2("The new PatternSet has " <<data.size()<< " patterns.");
   for (size_t i=0; i<data.size(); ++i) delete data[i];
 }
 
-data::SimplePatternSet::SimplePatternSet(const SimplePatternSet& other)
+data::PatternSet::PatternSet(const PatternSet& other)
   : m_data(0)
 {
-  RINGER_DEBUG2("Building SimplePatternSet from"
-		<< " another SimplePatternSet (copy construct).");
+  RINGER_DEBUG2("Building PatternSet from"
+		<< " another PatternSet (copy construct).");
   m_data = gsl_matrix_alloc(other.m_data->size1, other.m_data->size2);
   gsl_matrix_memcpy(m_data, other.m_data);
 }
 
-data::SimplePatternSet::SimplePatternSet(const SimplePatternSet& other,
+data::PatternSet::PatternSet(const PatternSet& other,
 					 const std::vector<size_t>& pats)
   : m_data(0)
 {
-  RINGER_DEBUG2("Building SimplePatternSet from selected patterns of another"
-		<< " SimplePatternSet (kind-of-copy construct).");
+  RINGER_DEBUG2("Building PatternSet from selected patterns of another"
+		<< " PatternSet (kind-of-copy construct).");
   m_data = gsl_matrix_alloc(pats.size(), other.m_data->size2);
   if (!m_data) {
     RINGER_DEBUG1("Allocation of internal matrix failed. Exception thrown.");
@@ -92,10 +92,10 @@ data::SimplePatternSet::SimplePatternSet(const SimplePatternSet& other,
   for (unsigned int i=0; i<pats.size(); ++i)
     gsl_matrix_set_row(m_data, i, 
 		       &gsl_matrix_row(other.m_data, pats[i]).vector);
-  RINGER_DEBUG2("The new SimplePatternSet has " <<pats.size()<< " patterns.");
+  RINGER_DEBUG2("The new PatternSet has " <<pats.size()<< " patterns.");
 }
 
-data::SimplePatternSet::SimplePatternSet(const std::vector<Pattern*>& pats)
+data::PatternSet::PatternSet(const std::vector<Pattern*>& pats)
   : m_data(0)
 {
   //check all patterns first
@@ -108,53 +108,77 @@ data::SimplePatternSet::SimplePatternSet(const std::vector<Pattern*>& pats)
   }
 
   //Build
-  RINGER_DEBUG2("Building SimplePatternSet from selected patterns.");
+  RINGER_DEBUG2("Building PatternSet from selected patterns.");
   m_data = gsl_matrix_alloc(pats.size(), std_size);
   for (unsigned int i=0; i<pats.size(); ++i)
     gsl_matrix_set_row(m_data, i, pats[i]->m_vector);
-  RINGER_DEBUG2("The new SimplePatternSet has " <<pats.size()<< " patterns.");
+  RINGER_DEBUG2("The new PatternSet has " <<pats.size()<< " patterns.");
 }
 
-data::SimplePatternSet::~SimplePatternSet()
+data::PatternSet::~PatternSet()
 {
   if (m_data) gsl_matrix_free(m_data);
 }
 
-size_t data::SimplePatternSet::size () const
+data::PatternSet& data::PatternSet::operator=
+(const std::vector<data::Pattern*>& pats) {
+  if (m_data) gsl_matrix_free(m_data);
+  m_data = 0;
+
+  //check all patterns first
+  size_t std_size = pats[0]->size();
+  for (size_t i=0; i<pats.size(); ++i) {
+    if (pats[i]->size() != std_size) {
+      RINGER_DEBUG1("Pattern[" << i << "] has a different pattern than the"
+		    << " rest. Exception thrown");
+    }
+  }
+
+  //Build
+  RINGER_DEBUG2("Building PatternSet from selected patterns.");
+  m_data = gsl_matrix_alloc(pats.size(), std_size);
+  for (unsigned int i=0; i<pats.size(); ++i)
+    gsl_matrix_set_row(m_data, i, pats[i]->m_vector);
+  RINGER_DEBUG2("The new PatternSet has " <<pats.size()<< " patterns.");
+
+  return *this;
+}
+
+size_t data::PatternSet::size () const
 {
   return m_data->size1;
 }
 
-size_t data::SimplePatternSet::pattern_size () const
+size_t data::PatternSet::pattern_size () const
 {
   return m_data->size2;
 }
 
-const data::Pattern data::SimplePatternSet::pattern (const size_t& pos) const
+const data::Pattern data::PatternSet::pattern (const size_t& pos) const
 {
   RINGER_DEBUG3("Getting const reference to Pattern[" << pos << "]");
   if (pos >= size()) {
     RINGER_DEBUG1("The maximum number of patterns is " << size()
 		  << ". You are trying to access pattern " << pos
 		  << ". Exception thrown.");
-    throw RINGER_EXCEPTION("SimplePatternSet out of (pattern) range");
+    throw RINGER_EXCEPTION("PatternSet out of (pattern) range");
   }
   return gsl_matrix_row(m_data, pos);
 }
 
-const data::Ensemble data::SimplePatternSet::ensemble (const size_t& pos) const
+const data::Ensemble data::PatternSet::ensemble (const size_t& pos) const
 {
   RINGER_DEBUG3("Getting const reference to Ensemble[" << pos << "]");
   if (pos >= pattern_size()) {
     RINGER_DEBUG1("The maximum number of ensembles is " << pattern_size()
 		  << ". You are trying to access ensemble " << pos
 		  << ". Exception thrown.");
-    throw RINGER_EXCEPTION("SimplePatternSet out of (ensemble) range");
+    throw RINGER_EXCEPTION("PatternSet out of (ensemble) range");
   }
   return gsl_matrix_column(m_data, pos);
 }
 
-void data::SimplePatternSet::set_pattern (const size_t& pos, 
+void data::PatternSet::set_pattern (const size_t& pos, 
 					  const Pattern& pat)
 {
   if (size() <= pos) {
@@ -176,7 +200,7 @@ void data::SimplePatternSet::set_pattern (const size_t& pos,
   return;
 }
 
-void data::SimplePatternSet::set_ensemble (const size_t& pos, 
+void data::PatternSet::set_ensemble (const size_t& pos, 
 					   const Ensemble& ens)
 {
   if (pattern_size() <= pos) {
@@ -197,7 +221,7 @@ void data::SimplePatternSet::set_ensemble (const size_t& pos,
   return;
 }
 
-void data::SimplePatternSet::erase_pattern (const size_t& pos)
+void data::PatternSet::erase_pattern (const size_t& pos)
 {
   RINGER_DEBUG3("Trying to remove pattern " << pos << " from set.");
   if (size() <= pos) {
@@ -243,7 +267,7 @@ void data::SimplePatternSet::erase_pattern (const size_t& pos)
   return;
 }
 
-void data::SimplePatternSet::erase_ensemble (const size_t& pos)
+void data::PatternSet::erase_ensemble (const size_t& pos)
 {
   RINGER_DEBUG3("Trying to remove ensemble " << pos << " from set.");
   if (pattern_size() <= pos) {
@@ -289,27 +313,27 @@ void data::SimplePatternSet::erase_ensemble (const size_t& pos)
   return;
 }
 
-data::PatternSet* data::SimplePatternSet::clone (void) const
+data::PatternSet* data::PatternSet::clone (void) const
 {
-  return new data::SimplePatternSet(*this);
+  return new data::PatternSet(*this);
 }
 
-data::PatternSet* data::SimplePatternSet::clone 
+data::PatternSet* data::PatternSet::clone 
 (const std::vector<size_t>& pats) const
 {
-  return new data::SimplePatternSet(*this, pats);
+  return new data::PatternSet(*this, pats);
 }
 
-void data::SimplePatternSet::shuffle (void)
+void data::PatternSet::shuffle (void)
 {
   static data::RandomInteger rnd;
   std::vector<size_t> pos(size());
   rnd.draw(size(), pos);
-  data::SimplePatternSet new_order(*this, pos);
+  data::PatternSet new_order(*this, pos);
   *this = new_order;
 }
 
-sys::xml_ptr data::SimplePatternSet::dump (sys::xml_ptr any,
+sys::xml_ptr data::PatternSet::dump (sys::xml_ptr any,
 					   const std::string& cname,
 					   const size_t start_id) const
 {
@@ -329,19 +353,19 @@ sys::xml_ptr data::SimplePatternSet::dump (sys::xml_ptr any,
   return node;
 }
 
-void data::SimplePatternSet::apply_pattern_op (const data::PatternOperator& op)
+void data::PatternSet::apply_pattern_op (const data::PatternOperator& op)
 {
   RINGER_DEBUG2("Applying PatternOperator to *all* my patterns.");
   //test output size of operator `op'
   data::Pattern tmp(pattern(0).size());
   op(pattern(0), tmp);
   size_t std_size = tmp.size();
-  data::SimplePatternSet newset(size(), std_size, 0);
+  data::PatternSet newset(size(), std_size, 0);
   for (size_t i=0; i<size(); ++i) { //for every pattern
     op(pattern(i), tmp);
     if (tmp.size() != std_size) {
       RINGER_DEBUG1("PatternOperator's that apply to"
-		    << " SimplePatternSet's have to "
+		    << " PatternSet's have to "
 		    << "generate Pattern's with the same size always.");
       throw RINGER_EXCEPTION("Non-stationary PatternOperator forbidden");
     }
@@ -350,7 +374,7 @@ void data::SimplePatternSet::apply_pattern_op (const data::PatternOperator& op)
   *this = newset; //copies result
 }
 
-void data::SimplePatternSet::apply_ensemble_op 
+void data::PatternSet::apply_ensemble_op 
 (const data::PatternOperator& op)
 {
   RINGER_DEBUG2("Applying PatternOperator to *all* my ensembles.");
@@ -358,12 +382,12 @@ void data::SimplePatternSet::apply_ensemble_op
   data::Pattern tmp(ensemble(0).size());
   op(ensemble(0), tmp);
   size_t std_size = tmp.size();
-  data::SimplePatternSet newset(size(), std_size, 0);
+  data::PatternSet newset(size(), std_size, 0);
   for (size_t i=0; i<pattern_size(); ++i) { //for every pattern
     op(ensemble(i), tmp);
     if (tmp.size() != std_size) {
       RINGER_DEBUG1("PatternOperator's that apply to"
-		    << " SimplePatternSet's have to "
+		    << " PatternSet's have to "
 		    << "generate Ensemble's with the same size always.");
       throw RINGER_EXCEPTION("Non-stationary PatternOperator forbidden");
     }
@@ -372,7 +396,7 @@ void data::SimplePatternSet::apply_ensemble_op
   *this = newset; //copies result
 }
 
-std::ostream& data::SimplePatternSet::stream_out (std::ostream& os) const
+std::ostream& data::PatternSet::stream_out (std::ostream& os) const
 {
   unsigned int i;
   for (i=0; i<size()-1; ++i) 
@@ -381,7 +405,7 @@ std::ostream& data::SimplePatternSet::stream_out (std::ostream& os) const
   return os;
 }
 
-sys::File& data::SimplePatternSet::stream_out (sys::File& f) const
+sys::File& data::PatternSet::stream_out (sys::File& f) const
 {
   unsigned int i;
   for (i=0; i<size()-1; ++i) f << pattern(i) << "\n";
@@ -389,14 +413,14 @@ sys::File& data::SimplePatternSet::stream_out (sys::File& f) const
   return f;
 }
 
-data::SimplePatternSet& data::SimplePatternSet::merge
-(const SimplePatternSet& other)
+data::PatternSet& data::PatternSet::merge
+(const PatternSet& other)
 {
-  RINGER_DEBUG3("Trying to merge two SimplePatternSet's");
+  RINGER_DEBUG3("Trying to merge two PatternSet's");
   if (other.size() == 0) return *this; /// Don't do anything
     
   if (pattern_size() != other.pattern_size()) {
-    RINGER_DEBUG1("Trying to merge SimplePatternSet's with "
+    RINGER_DEBUG1("Trying to merge PatternSet's with "
 		  << "different Pattern sizes. "
 		  << "LHS has " << pattern_size() << " ensembles while "
 		  << "RHS has " << other.pattern_size() << " ensembles.");
@@ -415,33 +439,31 @@ data::SimplePatternSet& data::SimplePatternSet::merge
   gsl_matrix_memcpy(&new_after.matrix, other.m_data);
   gsl_matrix_free(m_data);
   m_data = new_data;
-  RINGER_DEBUG3("New SimplePatternSet's contains " << size() << " patterns.");
+  RINGER_DEBUG3("New PatternSet's contains " << size() << " patterns.");
   return *this;
 }
 
-data::SimplePatternSet& data::SimplePatternSet::assign
-(const SimplePatternSet& other, const std::vector<size_t>& pats)
+data::PatternSet& data::PatternSet::assign
+(const PatternSet& other, const std::vector<size_t>& pats)
 {
-  RINGER_DEBUG2("Reseting SimplePatternSet from selected patterns of another"
-		<< " SimplePatternSet (kind-of-copy construct).");
+  RINGER_DEBUG2("Reseting PatternSet from selected patterns of another"
+		<< " PatternSet (kind-of-copy construct).");
   if (m_data->size1 != other.m_data->size1 || 
       m_data->size2 != other.m_data->size2) {
     gsl_matrix_free(m_data);
     m_data = gsl_matrix_alloc(pats.size(), other.m_data->size2);
-    RINGER_DEBUG1("Reallocated this SimplePatternSet (assign()'ing)...");
+    RINGER_DEBUG1("Reallocated this PatternSet (assign()'ing)...");
   }
   for (unsigned int i=0; i<pats.size(); ++i)
     gsl_matrix_set_row(m_data, i, 
 		       &gsl_matrix_row(other.m_data, pats[i]).vector);
-  RINGER_DEBUG2("The new SimplePatternSet has " <<pats.size()<< " patterns.");
+  RINGER_DEBUG2("The new PatternSet has " <<pats.size()<< " patterns.");
   return *this;
 }
 
-data::SimplePatternSet& 
-data::SimplePatternSet::operator= (const SimplePatternSet& other)
-{
-  RINGER_DEBUG2("Copying SimplePatternSet from another"
-		<< " SimplePatternSet (operator=).");
+data::PatternSet& data::PatternSet::operator= (const PatternSet& other) {
+  RINGER_DEBUG2("Copying PatternSet from another"
+		<< " PatternSet (operator=).");
   if (m_data->size1 != other.m_data->size1 || 
       m_data->size2 != other.m_data->size2) {
     gsl_matrix_free(m_data);
@@ -451,11 +473,9 @@ data::SimplePatternSet::operator= (const SimplePatternSet& other)
   return *this;
 }
 
-data::SimplePatternSet& data::SimplePatternSet::operator-= 
-(const SimplePatternSet& other)
-{
-  RINGER_DEBUG2("Copying SimplePatternSet from "
-		<< "another SimplePatternSet (operator=).");
+data::PatternSet& data::PatternSet::operator-= (const PatternSet& other) {
+  RINGER_DEBUG2("Copying PatternSet from "
+		<< "another PatternSet (operator=).");
   if (m_data->size1 != other.m_data->size1 || 
       m_data->size2 != other.m_data->size2) {
     RINGER_DEBUG1("For operator-=, I need sets with equal sizes."

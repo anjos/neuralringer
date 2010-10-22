@@ -96,3 +96,12 @@ double data::sp (const data::PatternSet& output,
   }
   return sp;
 }
+
+double data::mse (const data::PatternSet& output, 
+    const data::PatternSet& target)
+{
+  data::PatternSet error(target);
+  error -= output;
+  return data::mean_square(error);
+}
+

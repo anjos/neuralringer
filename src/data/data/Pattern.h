@@ -24,7 +24,7 @@
  */
 namespace data {
 
-  class SimplePatternSet; ///< forward
+  class PatternSet; ///< forward
   class PatternOperator; ///< forward
   class FeatureExtractor; ///< forward
   
@@ -236,7 +236,7 @@ namespace data {
     /**
      * My private friend
      */
-    friend class data::SimplePatternSet;
+    friend class data::PatternSet;
 
   private:
     gsl_vector_view m_view; ///< an optional view that might be set

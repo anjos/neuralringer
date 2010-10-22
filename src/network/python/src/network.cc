@@ -65,10 +65,10 @@ void bind_network()
     .add_property("input_size", &network::Network::input_size)
     .add_property("output_size", &network::Network::output_size)
     .def("train", (void (network::Network::*)(const data::Pattern&, const data::Pattern&))&network::Network::train, (arg("self"), arg("data"), arg("target")), "Single-step training")
-    .def("train", (void (network::Network::*)(const data::SimplePatternSet&, const data::SimplePatternSet&))&network::Network::train, (arg("self"), arg("data"), arg("target")), "Train using all data from the given set, in a single step")
-    .def("train", (void (network::Network::*)(const data::SimplePatternSet&, const data::SimplePatternSet&, unsigned int))&network::Network::train, (arg("self"), arg("data"), arg("target"), arg("epoch")), "Trains the network with this PatternSet. The training data is chosen from the 'data' PatternSet randomly, a number of times it is enough to fill in an epoch. The targets are selected accordingly to keep the system synchronised.")
+    .def("train", (void (network::Network::*)(const data::PatternSet&, const data::PatternSet&))&network::Network::train, (arg("self"), arg("data"), arg("target")), "Train using all data from the given set, in a single step")
+    .def("train", (void (network::Network::*)(const data::PatternSet&, const data::PatternSet&, unsigned int))&network::Network::train, (arg("self"), arg("data"), arg("target"), arg("epoch")), "Trains the network with this PatternSet. The training data is chosen from the 'data' PatternSet randomly, a number of times it is enough to fill in an epoch. The targets are selected accordingly to keep the system synchronised.")
     .def("run", (void (network::Network::*)(const data::Pattern&, data::Pattern&))&network::Network::run, (arg("self"), arg("input"), arg("output")), "Single test")
-    .def("run", (void (network::Network::*)(const data::SimplePatternSet&, data::SimplePatternSet&))&network::Network::run, (arg("self"), arg("input"), arg("output")), "Batch test")
+    .def("run", (void (network::Network::*)(const data::PatternSet&, data::PatternSet&))&network::Network::run, (arg("self"), arg("input"), arg("output")), "Batch test")
     ;
 
   class_<network::MLP, boost::shared_ptr<network::MLP>, bases<network::Network>, boost::noncopyable>("MLP", "Interface to create, load and safe Multi-Layer Perceptrons", no_init)

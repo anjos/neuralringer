@@ -27,8 +27,7 @@ namespace data {
      *
      * @param db The database to extract the ensemble mean from
      */
-    template <class TSet>
-    RemoveDBMeanOperator(const data::Database<TSet>& db);
+    RemoveDBMeanOperator(const data::Database& db);
 
     /**
      * Destructor virtualisation
@@ -51,20 +50,6 @@ namespace data {
 
   };
 
-}
-
-template <class TSet> data::RemoveDBMeanOperator::RemoveDBMeanOperator
-(const data::Database<TSet>& db)
-  : m_mean(db.pattern_size(),0)
-{
-  TSet ps(1,1);
-  db.merge(ps);
-  for (unsigned int i=0; i<ps.pattern_size(); ++i) { //for all ensembles
-    data::Ensemble e = ps.ensemble(i);
-    const gsl_vector* v = abuse(e);
-    m_mean[i] = gsl_stats_mean(v->data, v->stride, v->size);
-    RINGER_DEBUG3("Database mean for ensemble[" << i << "] is " << m_mean[i]);
-  }
 }
 
 #endif /* DATA_REMOVEDBMEANOPERATOR_H */

@@ -13,8 +13,9 @@ import nlsys as sys
 import data
 import config
 import network
+import error
 
 pysys.setdlopenflags(default_flags)
 del default_flags
 
-__all__ = ['sys', 'data', 'config', 'network']
+__all__ = ['sys', 'data', 'config', 'network', 'error']
