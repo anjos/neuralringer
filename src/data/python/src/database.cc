@@ -6,7 +6,9 @@
  */
 
 #include <boost/python.hpp>
+#include <boost/python/stl_iterator.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include "data/Pattern.h"
 #include "data/PatternSet.h"
 #include "data/Database.h"
@@ -15,21 +17,39 @@
 
 using namespace boost::python;
 
-boost::shared_ptr<data::PatternSet> create_patternset(list data) {
-  std::vector<data::Pattern*> v; 
-  for (size_t i = 0; i < data.attr("__len__")(); ++i) {
-    data::Pattern& p = extract<data::Pattern&>(data[i]);
-    v.push_back(&p);
+boost::shared_ptr<data::Pattern> make_pattern(object feat) {
+  //the input object "feat" has to be iterable!
+  boost::shared_ptr<data::Pattern> retval(new data::Pattern(len(feat), 0.0));
+  boost::python::stl_input_iterator<data::Feature> i(feat);
+  for(boost::python::ssize_t p=0; p<len(feat); ++p) (*retval)[p] = *(i++);
+  return retval;
+}
+
+boost::shared_ptr<data::PatternSet> create_patternset(object data) {
+  std::vector<boost::shared_ptr<data::Pattern> > v; 
+  std::vector<data::Pattern*> vp; 
+  boost::python::stl_input_iterator<object> it(data);
+  for (boost::python::ssize_t p=0; p<len(data); ++p) {
+    extract<data::Pattern> pat_extractor(*it);
+    if (pat_extractor.check()) {
+      data::Pattern* pointer = const_cast<data::Pattern*>(&pat_extractor());
+      vp.push_back(pointer);
+    }
+    else { //second case: iterable with doubles
+      boost::shared_ptr<data::Pattern> sp(make_pattern(*it));
+      v.push_back(sp);
+      vp.push_back(sp.get());
+    }
   }
-  return boost::shared_ptr<data::PatternSet>(new data::PatternSet(v));
+  return boost::shared_ptr<data::PatternSet>(new data::PatternSet(vp));
 }
 
 boost::shared_ptr<data::Database> create_database(data::Header& h, dict data, 
     sys::Reporter& r) {
   std::map<std::string, data::PatternSet*> d;
   for (object i = data.iterkeys(); i; i = i.attr("next")()) {
-    const char* name = extract<const char*>(i);
-    data::PatternSet& ps = extract<data::PatternSet&>(data[i]);
+    const char* name = extract<const char*>(i[0]);
+    data::PatternSet& ps = extract<data::PatternSet&>(i[1]);
     d[name] = &ps;
   }
   return boost::shared_ptr<data::Database>(new data::Database(&h, d, r));
@@ -51,6 +71,17 @@ list get_class_names(const data::Database& db) {
   db.class_names(class_names);
   for (size_t i=0; i<class_names.size(); ++i) retval.append(class_names[i]);
   return retval;
+}
+
+void db_set_targets(data::Database& db, dict targets) {
+  std::vector<boost::shared_ptr<data::Pattern> > pats;
+  std::map<std::string, data::Pattern*> tmap;
+  for (object i = targets.iterkeys(); i; i = i.attr("next")()) {
+    const char* name = extract<const char*>(i[0]);
+    pats.push_back(make_pattern(i[1]));
+    tmap[name] = pats[pats.size()-1].get();
+  }
+  db.set_target(tmap);
 }
 
 boost::shared_ptr<data::PatternSet> db_merge(const data::Database& db) {
@@ -81,6 +112,7 @@ void bind_data_database()
 		;
 
   class_<data::Pattern, boost::shared_ptr<data::Pattern> >("Pattern", "The Pattern is defined in terms of Feature's.\n\n In Neural Network's jargon, the <b>pattern</b> is an entity that contains a set of features that represent an event. Being the <b>pattern</b> just an ensemble, its C++ representation cannot be far from a simple vector. The required functionality is pretty much the same, although its implementation relies on GSL matrix views of a data set.\n\nIf a Pattern is created from a set of Feature's, a new block of data is allocated.", init<const size_t&, const data::Feature>())
+    .def("__init__", make_constructor(make_pattern, default_call_policies(), (arg("features"))))
     .def("size", &data::Pattern::size, (arg("self")), "The pattern size")
     .def("__add__", data::operator+)
     .def("__sub__", data::operator-)
@@ -117,11 +149,12 @@ void bind_data_database()
     .def("mse", &data::mse, (arg("self"), arg("target")), "Calculates the Mean-Square Root Error for a certain classifier output, given its target values.")
     ;
 
-  class_<data::Database, boost::shared_ptr<data::Database> >("Database", "Loads a database in memory. The database file consists of a header description and a set of entries each of which, contains one or more data sets classified.", init<const std::string&, sys::Reporter&>((arg("filename"), arg("reporter"))))
+  class_<data::Database, boost::shared_ptr<data::Database> >("LegacyDatabase", "Loads a database in memory. The database file consists of a header description and a set of entries each of which, contains one or more data sets classified.", init<const std::string&, sys::Reporter&>((arg("filename"), arg("reporter"))))
     .def("__init__", make_constructor(create_database, default_call_policies(), (arg("header"), arg("data"), arg("reporter"))))
     .def("header", &data::Database::header, (arg("self")), "Returns the DB header", return_internal_reference<>())
     .def("size", &data::Database::size, (arg("self")), "The current DB size")
     .def("pattern_size", &data::Database::pattern_size, (arg("self")), "The size of each pattern inside this DB")
+    .def("set_target", &db_set_targets, (arg("self"), arg("targets")), "Sets the targets for each class in the database")
     .def("data", (const data::PatternSet*(data::Database::*)(const std::string&))&data::Database::data, (arg("self"), arg("class_id")), "Returns a handle to the pattern set pointed by the class id input", return_internal_reference<>())
     .def("data", &get_data, (arg("self")), "Returns a handle to a database dictionary", with_custodian_and_ward_postcall<0, 1>())
     .def("class_names", &get_class_names, (arg("self")), "Returns a handle to a database dictionary")

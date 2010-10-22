@@ -20,11 +20,11 @@ def get_options():
       help="the input dataset containing the development data", metavar="FILE")
   parser.add_option('--test', dest="testset",
       help="the input dataset containing the final test data", metavar="FILE")
-  parser.add_option('--hidden', dest="nhidden",
+  parser.add_option('--hidden', dest="nhidden", default=3,
       help="number of neurons on the MLP hidden layer", metavar="INT")
-  parser.add_option('--epoch', dest="epoch",
-      help="the size of each training epoch", metavar="INT")
-  parser.add_option('--stop-after', dest="stop",
+  parser.add_option('--batch-size', dest="batch_size", default=1,
+      help="how many patterns to pick in each class for a single train step", metavar="INT")
+  parser.add_option('--stop-after', dest="stop", default=100,
       help="how many training cycles should go by w/o improvements to the classification, before I stop training", metavar="INT")
   options, args = parser.parse_args()
 
@@ -33,62 +33,45 @@ def get_options():
 
   return options
 
-def prepare_inputs(database):
-  """Creates the input dictionaries, with the respective targets"""
-  retval = {
-      'input': nlab.data.PatternSet(1, 1),
-      'target': nlab.data.PatternSet(1, 1),
-      }
-  database.merge(retval['input'])
-  database.merge_target(False, -1, +1, retval['target'])
-  return retval
-
 def main():
   options = get_options()
   reporter = nlab.sys.Reporter()
 
-  #loads the DBs
-  traindb = nlab.data.Database(options.trainset, reporter)
-  develdb = nlab.data.Database(options.develset, reporter)
-  testdb  = nlab.data.Database(options.testset,  reporter)
+  #some hard-coded targets
+  targets = {'Real-access': (+1,), 'Attack': (-1,)}
 
-  #tune input DBs for size/randomness
-  traindb_normalized = nlab.data.Database(traindb)
-  traindb_normalized.normalise()
-  #calculates the normalization factor based on the normalized trainset
-  norm_op = nlab.data.NormalizationOperator(traindb_normalized)
+  #loads the DBs
+  train = nlab.data.Database(options.trainset)
+  train.set_target(targets)
+  devel = nlab.data.Database(options.develset)
+  devel.set_target(targets)
+  test  = nlab.data.Database(options.testset)
+  test.set_target(targets)
+
+  #calculates the normalization factor 
+  mean, stddev = [nl.data.Pattern(k) for k in nlab.data.extractors(train)]
 
   #creates the network
-  net = nlab.network.MLP(traindb.pattern_size(), [options.nhidden],
-      traindb.size(), [True, True],
+  net = nlab.network.MLP(train.pattern_size(), [options.nhidden],
+      train.size(), [True, True],
       nlab.config.NeuronStrategyType.NEURON_BACKPROP, #hidden layer
       nlab.config.NeuronBackProp(nlab.config.NeuronBackProp.TANH),
       nlab.config.NeuronStrategyType.NEURON_BACKPROP, #output layer
       nlab.config.NeuronBackProp(nlab.config.NeuronBackProp.TANH),
       nlab.config.SynapseStrategyType.SYNAPSE_RPROP,
-      nlab.config.SynapseRProp(0.1),
-      norm_op.mean(), norm_op.stddev(),
-      reporter)
+      nlab.config.SynapseRProp(0.1), mean, stddev, reporter)
   
-  #prepares all pattern sets for training the network and for testing
-  train_normalized = prepare_inputs(traindb_normalized)
-  train = prepare_inputs(traindb)
-  devel = prepare_inputs(develdb)
-  test  = prepare_inputs(testdb)
-
-  #some configuration stuff
-  header = nlab.config.Header('Andre Anjos', 'Bla', '1.0', int(time.time()),
-      'MLP - RProp-trained - Network')
-
-  #TODO: capture MSE and save to disk
   step = 0 #current training step
-  observer = nlab.perf.Observer(net, train, devel, test, reporter)
+  observer = nlab.error.Observer(net, train, devel, test, reporter)
   while True: #trains until net statibilizes
-    net.train(train_normalized['input'], train_normalized['target'], 
-        options.epoch)
+    data, target = train.random_sample(options.batch_size)
+    net.train(data, target)
     observer.evaluate()
     print observer.statistics()
     if options.stop < observer.stalled: break
   
   #Finalize all statistics using the best network saved so far.
-  bestnet = observer.best_classifier_seen[1]
+  observer.save_best('trained-network.xml')
+  analyzer = nlab.error.Analyzer(observer)
+  analyzer.pdf_all('trained-network.pdf')
+  #print analyzer.error()

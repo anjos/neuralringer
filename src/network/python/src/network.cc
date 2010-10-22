@@ -66,7 +66,6 @@ void bind_network()
     .add_property("output_size", &network::Network::output_size)
     .def("train", (void (network::Network::*)(const data::Pattern&, const data::Pattern&))&network::Network::train, (arg("self"), arg("data"), arg("target")), "Single-step training")
     .def("train", (void (network::Network::*)(const data::PatternSet&, const data::PatternSet&))&network::Network::train, (arg("self"), arg("data"), arg("target")), "Train using all data from the given set, in a single step")
-    .def("train", (void (network::Network::*)(const data::PatternSet&, const data::PatternSet&, unsigned int))&network::Network::train, (arg("self"), arg("data"), arg("target"), arg("epoch")), "Trains the network with this PatternSet. The training data is chosen from the 'data' PatternSet randomly, a number of times it is enough to fill in an epoch. The targets are selected accordingly to keep the system synchronised.")
     .def("run", (void (network::Network::*)(const data::Pattern&, data::Pattern&))&network::Network::run, (arg("self"), arg("input"), arg("output")), "Single test")
     .def("run", (void (network::Network::*)(const data::PatternSet&, data::PatternSet&))&network::Network::run, (arg("self"), arg("input"), arg("output")), "Batch test")
     ;

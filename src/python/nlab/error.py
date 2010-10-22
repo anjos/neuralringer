@@ -6,38 +6,12 @@
 """Calculates error curves and the such.
 """
 
+__all__ = ['Observer', 'Analyzer']
+
 import os, sys, math, tempfile
 import matplotlib.pyplot as mpl
 from matplotlib.backends.backend_pdf import PdfPages
 from data import SimplePatternSet
-
-class Evaluator(object):
-  """Expresses the performance of a certain classifier."""
-
-  def __init__(self, train, devel, test):
-    """Initializes the Performance object with links to the train input and
-    targets as well as the ones for the development set and the test sets."""
-
-    self.train = train
-    self.devel = devel
-    self.test  = test
-
-    #some buffers
-    self.output['train'] = SimplePatternSet(train['target'])
-    self.output['devel'] = SimplePatternSet(devel['target'])
-    self.output['test']  = SimplePatternSet(test['target'])
-
-  def __call__(self, classifier):
-    """Evaluates the performance for the classifier given."""
-
-    classifier.run(self.train['input'], self.output['train'])
-    train_mse = self.output['train'].mse(self.train['target'])
-    classifier.run(self.devel['input'], self.output['devel'])
-    devel_mse = self.output['devel'].mse(self.devel['target'])
-    classifier.run(self.test['input'], self.output['test'])
-    devel_mse = self.output['test'].mse(self.test['target'])
-
-    return (train_mse, devel_mse, test_mse)
 
 class Observer(object):
   """Objects of this type observe what happens to a classifier while its being
@@ -45,29 +19,49 @@ class Observer(object):
   stop training a classifier."""
 
   def __init__(self, classifier, train, devel, test, reporter):
-    self.evaluator = Evaluator(train, devel, test)
+    def prepare_buffers(database):
+      retval = {}
+      retval['database'] = database
+      retval['input'] = database.cat()
+      retval['target'] = database.cat_target()
+      retval['output'] = database.cat_target()
+
+    self.data = {}
+    self.data['train'] = prepare_buffers(train)
+    self.data['devel'] = prepare_buffers(devel)
+    self.data['test'] = prepare_buffers(test)
     self.classifier = classifier
-    self.best_classifier_seen = (0, self.classifier.clone(reporter))
+    self.best_classifier_seen = (0, classifier.clone(reporter))
+    self.reporter = reporter
     self.mse = []
 
-  def evalulate(self):
-    """Evalulates the current classifier performance"""
-    train_mse, devel_mse, test_mse = self.evaluator(self.classifier)
-    self.mse.append({
-      'train': train_mse,
-      'devel': devel_mse,
-      'test': test_mse,
-      })
+  def rundb(self, classifier, dbname):
+    classifier.run(self.data[dbname]['input'], self.data[dbname]['output'])
 
-    if devel_mse < min([k['devel'] for k in self.mse]): #save best state
-      self.best_classifier_seen = (len(self.mse),
-          self.classifier.clone(self.return))
+  def evaluate(self):
+    """Evalulates the current classifier performance"""
+    
+    def eval_once(classifier, dbname): 
+      self.rundb(classifier, dbname)
+      return self.data[dbname]['output'].mse(self.data[dbname]['target'])
+
+    result = {}
+    for k, v in self.data.iteritems(): result[k] = eval_once(self.classifier, v)
+    
+    if result['devel'] < min([k['devel'] for k in self.mse]): #save best state
+      self.best_classifier_seen = (len(self.mse), 
+          self.classifier.clone(self.reporter))
+    
+    self.mse.append(result)
 
   def _stalled(self):
     """Determines how many cycles w/o improvement have been observed."""
     return len(self.mse) - self.best_classifier_seen[0]
   
   stalled = property(_stalled)
+
+  def save_best(self, filename):
+    self.best_classifier_seen[1].save(filename)
 
 def far(noise, threshold):
   """Calculates the FAR given a certain threshold."""
@@ -79,16 +73,16 @@ def frr(signal, threshold):
 
 def plot_roc(data, name):
   for k in data.iterkeys(): 
-    mpl.plot(data[k]['far'], data[k]['frr'], **data[k]['style'])
+    mpl.plot(data[k]['far'], data[k]['frr'], **Analyzer.STYLE[k])
   mpl.grid(True)
   mpl.title('ROC curve (%s)' % name)
   mpl.xlabel('FAR (%)')
   mpl.ylabel('FRR (%)')
   mpl.legend()
 
-def plot_det(data, name)
+def plot_det(data, name):
   for k in data.iterkeys(): 
-    mpl.loglog(data[k]['far'], data[k]['frr'], **data[k]['style'])
+    mpl.loglog(data[k]['far'], data[k]['frr'], **Analyzer.STYLE[k])
   mpl.grid(True)
   mpl.title('ROC curve (%s)' % name)
   mpl.xlabel('FAR (%)')
@@ -102,7 +96,7 @@ def hter_min_wer(data, omega):
   minhter = 100
   for i, k in enumerate(threshold):
     wer = (omega * data['devel']['far'][i]) + \
-        ((1-omega) * data['devel']['ffr'][i])
+        ((1-omega) * data['devel']['frr'][i])
     if wer <= minwer:
       minwer = wer
       minhter = (data['test'][i] + data['test'][i])/2
@@ -122,39 +116,75 @@ def plot_epc(data, name):
   mpl.xlabel('$\omega$')
   mpl.legend()
 
+def plot_mse(data, name):
+  for k in data.keys():
+    mpl.plot(range(len(data[k]['mse']), data[k]['mse'], **Analyzer.STYLE[k]))
+  mpl.grid(True)
+  mpl.Title('MSE evolution')
+  mpl.ylabel('Mean Square Error')
+  mpl.xlable('Training steps')
+  mpl.legend()
+
 class Analyzer(object):
   """Objects of this type can analyze classifiers and nicely plot results."""
 
-  def __init__(self, classifier, train, devel, test):
-    buff = SimplePatternSet()
-    classifier.run(self.train['input'], buff)
-    train_mse = self.output['train'].mse(self.train['target'])
-    classifier.run(self.devel['input'], self.output['devel'])
-    devel_mse = self.output['devel'].mse(self.devel['target'])
-    classifier.run(self.test['input'], self.output['test'])
-    devel_mse = self.output['test'].mse(self.test['target'])
+  STYLE  = {
+      'train': {
+        'color': '0.7', 
+        'linestyle': '.-', 
+        'linewidth': 1,
+        },
+      'devel': {
+        'color': '0.7', 
+        'linestyle': '-', 
+        'linewidth': 1,
+        },
+      'test': {
+        'color': 'black', 
+        'linestyle': '-', 
+        'linewidth': 2,
+        },
+      }
 
-    self.data = {
-        'train': {
-          'far': 
-          }
-    self.style  = {
-        'train': {
-          'color': '0.7', 
-          'linestyle': '.-', 
-          'linewidth': 1,
-          },
-        'devel': {
-          'color': '0.7', 
-          'linestyle': '-', 
-          'linewidth': 1,
-          },
-        'test': {
-          'color': 'black', 
-          'linestyle': '-', 
-          'linewidth': 2,
-          },
-        }
+  def __init__(self, observer):
+    self.observer = observer
+    self.signal_class = signal
+    self.noise_class = noise
 
-  def plot_roc(self):
-    """"""
+    #gets the MSE
+    self.data = {'train': {}, 'devel': {}, 'test': {},}
+    for k in self.data.keys():
+      self.data[k]['mse'] = [i[k] for i in self.observer.mse]
+
+    #estimates the FAR and FFR on all sets
+    if len(self.observer.evaluator.train.target.values()) != 2:
+      raise RuntimeError, "Can only make plots if we have only 2 targets"
+
+    #WARNING: -1 => noise, +1 => signal
+    points = 20
+    thresholds = [k/float(points) for k in range(-1*points+1, points)]
+    for k in self.data.keys():
+      self.data[k]['far'] = []
+      self.data[k]['frr'] = []
+      self.data[k]['thresholds'] = thresholds
+      self.observer.rundb(self.observer.best_classifier_seen[1], k)
+      output = self.observer.data[k]['output']
+      target = self.observer.data[k]['target']
+      noise = [output[j] for j in range(len(output)) if target[j] < 0]
+      signal = [output[j] for j in range(len(output)) if target[j] > 0]
+      for t in thresholds: 
+        self.data[k]['far'].append(far(noise, t))
+        self.data[k]['frr'].append(frr(signal, t))
+
+  def pdf_all(self, filename, hint=''):
+    """Records a full run analyzis to PDF"""
+    pp = PdfPages(filename)
+    for k in (plot_mse, plot_roc, plot_det, plot_epc):
+      fig = mpl.figure()
+      k(data, hint)
+      pp.savefig(fig)
+    pp.close()
+
+  def error(self):
+    """Calculates the min HTER and EER and print thresholds."""
+    pass 
