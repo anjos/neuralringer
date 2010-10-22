@@ -9,9 +9,6 @@
 __all__ = ['Observer', 'Analyzer']
 
 import os, sys, math, tempfile
-import matplotlib.pyplot as mpl
-from matplotlib.backends.backend_pdf import PdfPages
-from data import SimplePatternSet
 
 class Observer(object):
   """Objects of this type observe what happens to a classifier while its being
@@ -72,6 +69,8 @@ def frr(signal, threshold):
   return 100.0*sum([int(k<threshold) for k in signal])/float(len(signal))
 
 def plot_roc(data, name):
+  import matplotlib.pyplot as mpl
+
   for k in data.iterkeys(): 
     mpl.plot(data[k]['far'], data[k]['frr'], **Analyzer.STYLE[k])
   mpl.grid(True)
@@ -81,6 +80,8 @@ def plot_roc(data, name):
   mpl.legend()
 
 def plot_det(data, name):
+  import matplotlib.pyplot as mpl
+
   for k in data.iterkeys(): 
     mpl.loglog(data[k]['far'], data[k]['frr'], **Analyzer.STYLE[k])
   mpl.grid(True)
@@ -103,6 +104,8 @@ def hter_min_wer(data, omega):
   return minhter
 
 def plot_epc(data, name):
+  import matplotlib.pyplot as mpl
+
   N = len(data['test']['far'])
   omega = [k/float(N-1) for k in range(N)]
   test_hter = []
@@ -117,6 +120,8 @@ def plot_epc(data, name):
   mpl.legend()
 
 def plot_mse(data, name):
+  import matplotlib.pyplot as mpl
+
   for k in data.keys():
     mpl.plot(range(len(data[k]['mse']), data[k]['mse'], **Analyzer.STYLE[k]))
   mpl.grid(True)
@@ -178,6 +183,7 @@ class Analyzer(object):
 
   def pdf_all(self, filename, hint=''):
     """Records a full run analyzis to PDF"""
+    from matplotlib.backends.backend_pdf import PdfPages
     pp = PdfPages(filename)
     for k in (plot_mse, plot_roc, plot_det, plot_epc):
       fig = mpl.figure()

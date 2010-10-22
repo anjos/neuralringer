@@ -75,3 +75,5 @@ def main():
   analyzer = nlab.error.Analyzer(observer)
   analyzer.pdf_all('trained-network.pdf')
   #print analyzer.error()
+
+if __name__ == '__main__': main()
