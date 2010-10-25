@@ -62,7 +62,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(save_overloads, save, 1, 2)
 void bind_network()
 {
   class_<network::Network, boost::shared_ptr<network::Network>, boost::noncopyable>("Network", "Interface to load/save network data from files", init<const std::string&, sys::Reporter&>())
-    .def("save", &network::Network::save, save_overloads((arg("self"), arg("filename"), arg("header")), "Saves the current network into a XML file."))
+    .def("save", &network::Network::save, save_overloads((arg("self"), arg("filename")), "Saves the current network into a XML file."))
     .def("dot", &network::Network::dot, (arg("self"), arg("filename")), "Draws using dot, the current network")
     .add_property("input_size", &network::Network::input_size)
     .add_property("output_size", &network::Network::output_size)
