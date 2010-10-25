@@ -29,7 +29,7 @@ boost::shared_ptr<data::PatternSet> create_patternset(object data) {
   std::vector<boost::shared_ptr<data::Pattern> > v; 
   std::vector<data::Pattern*> vp; 
   boost::python::stl_input_iterator<object> it(data);
-  for (boost::python::ssize_t p=0; p<len(data); ++p) {
+  for (boost::python::ssize_t p=0; p<len(data); ++p, ++it) {
     extract<data::Pattern> pat_extractor(*it);
     if (pat_extractor.check()) {
       data::Pattern* pointer = const_cast<data::Pattern*>(&pat_extractor());

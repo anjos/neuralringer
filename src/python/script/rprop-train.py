@@ -22,14 +22,26 @@ def get_options():
       help="the input dataset containing the final test data (defaults to %default)", metavar="FILE")
   parser.add_option('--hidden', dest="nhidden", default=5,
       help="number of neurons on the MLP hidden layer (defaults to %default)", metavar="INT")
-  parser.add_option('--batch-size', dest="batch_size", default=5,
+  parser.add_option('--batch-size', dest="batch_size", default=20,
       help="how many patterns to pick in each class for a single train step (defaults to %default)", metavar="INT")
+  parser.add_option('--epoch-size', dest="epoch_size", default=100,
+      help="How many training steps to wait until sample network performance (defaults to %default)", metavar="INT")
   parser.add_option('--stop-after', dest="stop", default=10000,
-      help="how many training cycles should go by w/o improvements to the classification, before I stop training (defaults to %default)", metavar="INT")
+      help="how many training steps should go by w/o improvements to the classification, before I stop training (defaults to %default)", metavar="INT")
+  parser.add_option('--weight-update', dest="weight_update", default=0.1,
+      help="The weight update constant for the R-Prop algorithm (defaults to %default)", metavar="FLOAT")
+  
   options, args = parser.parse_args()
 
   if len(args) != 0:
     parser.error("this program does not accept positional arguments")
+
+  #some tweaking
+  options.nhidden = int(options.nhidden)
+  options.batch_size = int(options.batch_size)
+  options.epoch_size = int(options.epoch_size)
+  options.stop = int(options.stop)
+  options.weight_update = float(options.weight_update)
 
   return options
 
@@ -60,22 +72,28 @@ def main():
       nlab.config.NeuronStrategyType.NEURON_BACKPROP, #output layer
       nlab.config.NeuronBackProp(actfun),
       nlab.config.SynapseStrategyType.SYNAPSE_RPROP,
-      nlab.config.SynapseRProp(0.05), mean, stddev, reporter)
+      nlab.config.SynapseRProp(options.weight_update), mean, stddev, reporter)
   
   step = 1 #current training step
   observer = nlab.error.Observer(net, train, devel, test)
-  while True: #trains until net statibilizes
-    data, target = train.random_sample(options.batch_size)
-    net.train(data, target)
-    observer.evaluate()
-    if not step%100: print observer.statistics()
-    if options.stop < observer.stalled: break
-    step += 1
+
+  try:
+    while True: #trains until net statibilizes
+      data, target = train.random_sample(options.batch_size)
+      net.train(data, target)
+      if not step % options.epoch_size:
+        observer.evaluate(step)
+        print observer.statistics(step)
+        if options.stop < observer.stalled(step): break
+      step += 1
+  except KeyboardInterrupt: #we still would like to run analysis
+    pass
   
   #Finalize all statistics using the best network saved so far.
-  observer.save_best('trained-network.xml')
+  observer.save_best('network.xml')
   analyzer = nlab.error.Analyzer(observer)
-  analyzer.pdf_all('trained-network.pdf')
-  #print analyzer.error()
+  hint = os.sep.join(os.path.realpath(os.curdir).split(os.sep)[-3:])
+  analyzer.pdf_all('results.pdf', hint)
+  print analyzer.error()
 
 if __name__ == '__main__': main()

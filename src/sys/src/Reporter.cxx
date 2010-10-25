@@ -31,10 +31,6 @@ sys::Reporter::Reporter(const std::string& type)
     warn("Using \"LOCAL\" reporting system.");
   }
 
-  ///Start-up report: the date
-  std::ostringstream oss;
-  oss << "This is the NeuralRinger v" << NR_VERSION << " Reporter.";
-  report(oss.str());
   RINGER_DEBUG1("Debug level 1 is activated.");
   RINGER_DEBUG2("Debug level 2 is activated.");
   RINGER_DEBUG3("Debug level 3 is activated.");
@@ -42,10 +38,6 @@ sys::Reporter::Reporter(const std::string& type)
 
 sys::Reporter::~Reporter()
 {
-  //Shutdown report.
-  std::ostringstream oss;
-  oss << "NeuralRinger v" << NR_VERSION << " Reporter has finished.";
-  report(oss.str());
   delete m_impl;
 }
 
