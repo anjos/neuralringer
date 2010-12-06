@@ -11,16 +11,17 @@ N - Number of times to repeat each training.
 """
 
 SCRIPT = """#!/bin/bash
-#$ -N %(prog)s %(params)
+#$ -N %(prog)s-%(params)s
 #$ -cwd
 basedir=/idiap/home/aanjos/work/replay/shaking
+source /idiap/home/aanjos/sw/setup.sh
 source ${basedir}/neurallab/setup.sh
 workdir=${basedir}/%(dir)s
 cd ${workdir}
-now=$(date +'%y.%m.%d-%H:%M:%S')
+now=$(date +'%%y.%%m.%%d-%%H:%%M:%%S')
 while [ -d ${workdir}/${now} ]; do
   sleep 1
-  now=$(date +'%y.%m.%d-%H:%M:%S')
+  now=$(date +'%%y.%%m.%%d-%%H:%%M:%%S')
 done
 mkdir ${workdir}/${now}
 cd ${workdir}/${now}
@@ -42,6 +43,10 @@ def sge_train(directory):
   return not p.returncode
 
 if __name__ == '__main__':
+  if len(sys.argv) == 1:
+    print __doc__
+    sys.exit(1)
+
   for N in range(int(sys.argv[1])):
     for k in sys.argv[2:]:
       print 'Qsub\'ing: %s, try %d...' % (k, N),
