@@ -19,40 +19,46 @@ def db_from_xml(source):
   def load_features(c):
     """Loads all feature of a class, returns a list."""
     l = []
-    for f in c.getElementsByTagName('feature'):
-      l.append(tuple([float(k) for k in f.childNodes[0].wholeText.split()]))
+    properties = []
+    for f in c.getElementsByTagName('entry'):
+      properties.append(dict(f.attributes))
+      feats = f.getElementsByTagName('feature')[0]
+      l.append(tuple([float(k) for k in feats.childNodes[0].wholeText.split()]))
     lengths = [len(k) for k in l]
     if max(lengths) != min(lengths):
       raise RuntimeError, "Feature lengths should be the same in class %s (min: %d; max: %d)"  % (c.getAttribute('name'), min(lengths), max(lengths))
-    return (lengths[0], l)
+    return (lengths[0], l, properties)
 
   dom = xml_parse(source)
-  retval = {}
+  features = {}
+  properties = {}
   pattern_length = None
   for c in dom.getElementsByTagName('class'):
-    length, retval[c.getAttribute('name')] = load_features(c)
-    retval[c.getAttribute('name')] = tuple(retval[c.getAttribute('name')])
+    length, features[c.getAttribute('name')], properties[c.getAttribute('name')] = load_features(c)
+    features[c.getAttribute('name')] = tuple(features[c.getAttribute('name')])
     if not pattern_length: pattern_length = length
     elif length != pattern_length:
       raise RuntimeError, "Features of class %s do not seem to follow the standard for the database (normal: %d; %s: %d)" % (c.getAttribute('name'), pattern_length, c.getAttribute('name'), length)
 
-  return retval
+  return features, properties
 
 class Database(object):
   """A database contains the data for different classes."""
 
   def __init__(self, *args):
     self.data = {}
+    self.properties = {}
     self.target = {}
 
     if len(args) == 1:
       if isinstance(args[0], Database):
         other = args[0]
         for k, v in other.data.iteritems(): self.data[k] = v
+        for k, v in other.properties.iteritems(): self.properties[k] = v
         for k, v in other.target.iteritems(): self.target[k] = v 
       elif isinstance(args[0], str): #load from file
         f = open(args[0], 'rt')
-        self.data = db_from_xml(f)
+        self.data, self.properties = db_from_xml(f)
         f.close()
       else:
         raise RuntimeError, "Cannot construct a new Databse from %s" % \
