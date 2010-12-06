@@ -6,6 +6,10 @@
 """Calculates error curves and the such.
 """
 
+# Configures matplotlib to remove Tkinter Multi-threading requirements that do
+# not work well under Idiap's SGE setup
+import matplotlib; matplotlib.use('pdf')
+
 __all__ = ['Observer', 'Analyzer']
 
 import os, sys, tempfile
