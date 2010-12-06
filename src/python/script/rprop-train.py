@@ -26,10 +26,12 @@ def get_options():
       help="how many patterns to pick in each class for a single train step (defaults to %default)", metavar="INT")
   parser.add_option('--epoch-size', dest="epoch_size", default=100,
       help="How many training steps to wait until sample network performance (defaults to %default)", metavar="INT")
-  parser.add_option('--stop-after', dest="stop", default=10000,
+  parser.add_option('--stop-after', dest="stop", default=20000,
       help="how many training steps should go by w/o improvements to the classification, before I stop training (defaults to %default)", metavar="INT")
   parser.add_option('--weight-update', dest="weight_update", default=0.1,
       help="The weight update constant for the R-Prop algorithm (defaults to %default)", metavar="FLOAT")
+  parser.add_option('--verbose', dest="verbose", default=False,
+      action='store_true', help="Turn on some debugging messages")
   
   options, args = parser.parse_args()
 
@@ -83,7 +85,7 @@ def main():
       net.train(data, target)
       if not step % options.epoch_size:
         observer.evaluate(step)
-        print observer.statistics(step)
+        if options.verbose: print observer.statistics(step)
         if options.stop < observer.stalled(step): break
       step += 1
   except KeyboardInterrupt: #we still would like to run analysis
@@ -92,7 +94,7 @@ def main():
   #Finalize all statistics using the best network saved so far.
   observer.save_best('network.xml')
   analyzer = nlab.error.Analyzer(observer)
-  hint = os.sep.join(os.path.realpath(os.curdir).split(os.sep)[-3:])
+  hint = os.sep.join(os.path.realpath(os.curdir).split(os.sep)[-4:-1])
   analyzer.pdf_all('results.pdf', hint)
   print analyzer.error()
 
