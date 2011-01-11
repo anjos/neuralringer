@@ -51,7 +51,7 @@ def main():
   test.name = 'test'
 
   #loads the network
-  net = nlab.network.Network(options.network)
+  net = nlab.network.Network(options.network, reporter)
 
   def inline_dict(d):
     to_print = []
@@ -64,14 +64,14 @@ def main():
     output = {}
     for cls in targets.keys():
       ips = nlab.data.PatternSet(db.data[cls])
-      output[cls] = nlab.data.PatternSet()
+      output[cls] = nlab.data.PatternSet(len(db.data[cls]), 1, 0.0)
       net.run(ips, output[cls])
     dir = os.path.dirname(os.path.realpath(options.network))
     f = open(os.path.join(dir, db.name + '.txt'), 'wt')
     for cls in targets.keys():
       for patidx in range(output[cls].size()):
         f.write(cls + ' ' + inline_dict(db.properties[cls][patidx]) + \
-            ' output=%.6e' % output[cls][patidx] + '\n'
+            ' output=%.6e' % (output[cls][patidx][0],) + '\n')
     f.close()
 
 if __name__ == '__main__': main()

@@ -21,8 +21,8 @@ SCRIPT = """#!/bin/bash
 #$ -N %(prog)s
 #$ -cwd
 source /idiap/home/aanjos/sw/setup.sh
-source ${basedir}/neurallab/setup.sh
-cd $(dirname $1)
+source /idiap/home/aanjos/work/replay/shaking/neurallab/setup.sh
+cd $(dirname %(param)s)
 %(prog)s --train=../train.xml --devel=../devel.xml --test=../test.xml --network=network.xml
 """
 
@@ -30,7 +30,7 @@ import os, sys, subprocess, tempfile
 
 def sge_run(network):
   tmp = tempfile.TemporaryFile()
-  tmp.write(SCRIPT % {'prog': 'run.py'})
+  tmp.write(SCRIPT % {'prog': 'run.py', 'param': network})
   tmp.seek(0)
   cmd = ['qsub']
   p = subprocess.Popen(cmd, stdin=tmp, stdout=subprocess.PIPE,
@@ -45,7 +45,8 @@ if __name__ == '__main__':
     sys.exit(1)
 
   for net in sys.argv[1:]:
+    if net.strip()[0] != os.sep: net = os.path.join(os.curdir, net)
     netpath = os.path.realpath(net)
-    print 'Qsub\'ing: run %s...' % (net),
-    if sge_run(k): print 'OK'
+    print 'Qsub\'ing: run %s...' % (netpath),
+    if sge_run(netpath): print 'OK'
     else: print 'Failed'

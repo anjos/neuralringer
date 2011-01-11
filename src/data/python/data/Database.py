@@ -21,7 +21,7 @@ def db_from_xml(source):
     l = []
     properties = []
     for f in c.getElementsByTagName('entry'):
-      properties.append(dict(f.attributes))
+      properties.append(dict(f.attributes.items()))
       feats = f.getElementsByTagName('feature')[0]
       l.append(tuple([float(k) for k in feats.childNodes[0].wholeText.split()]))
     lengths = [len(k) for k in l]
