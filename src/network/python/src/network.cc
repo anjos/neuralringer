@@ -22,7 +22,7 @@ boost::shared_ptr<network::MLP> make_network_1(const size_t input,
 	 const data::Pattern& input_divide,
 	 sys::Reporter& reporter) {
   std::vector<size_t> h;
-  for (size_t i=0; i<hidden.attr("__len__")(); ++i) {
+  for (size_t i=0; i<len(hidden); ++i) {
     h.push_back(extract<size_t>(hidden[i]));
   }
   return boost::shared_ptr<network::MLP>(new network::MLP(input, h, output, 
@@ -45,12 +45,12 @@ boost::shared_ptr<network::MLP> make_network_2(const size_t input,
 	 sys::Reporter& reporter) {
 
   std::vector<size_t> h;
-  for (size_t i=0; i<hidden.attr("__len__")(); ++i) {
+  for (size_t i=0; i<len(hidden); ++i) {
     h.push_back(extract<size_t>(hidden[i]));
   }
   std::vector<bool> b;
-  for (size_t i=0; i<bias.attr("__len__")(); ++i) {
-    h.push_back(extract<bool>(bias[i]));
+  for (size_t i=0; i<len(bias); ++i) {
+    b.push_back(extract<bool>(bias[i]));
   }
   return boost::shared_ptr<network::MLP>(new network::MLP(input, h, output, b,
         hidneu_strat_type, hidneu_params, outneu_strat_type, outneu_params, 
