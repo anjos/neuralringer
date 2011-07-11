@@ -1,6 +1,15 @@
 # Tries to find a local version of Python installed
 # Andre Anjos - 09.july.2010
 
+# We pre-calculate the default python version
+execute_process(COMMAND python -c "import sys; print '%d.%d' % (sys.version_info[0], sys.version_info[1])" OUTPUT_VARIABLE PYTHON_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# Cache this variable so it stays
+set(PYTHON_VERSION ${PYTHON_VERSION} CACHE INTERNAL "python")
+
+# We then set the preference to use that
+set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION})
+
 include(FindPythonLibs)
 include(FindPythonInterp)
 
